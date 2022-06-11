@@ -4,14 +4,22 @@ services:
   api:
     build:
       context: api
+    hostname: ${KLIO_EXPL_API_HOSTNAME:-klio-expl-api}
+    depends_on:
+      - db
     ports:
       - 8000:8000
+    environment:
+      - CONNECT_STRING=${KLIO_EXPL_API_CONNECT_STRING:-postgres://postgres:HJFHSN2OFJFEC52UKV2CMNBBKQ@klio-expl-db/expl?sslmode=disable}
   db:
     image: postgres:14.3-alpine3.16
+    hostname: ${KLIO_EXPL_DB_HOSTNAME:-klio-expl-db}
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=HJFHSN2OFJFEC52UKV2CMNBBKQ
+      - POSTGRES_USER=${KLIO_EXPL_DB_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${KLIO_EXPL_DB_POSTGRES_PASSWORD:-HJFHSN2OFJFEC52UKV2CMNBBKQ}
+      - POSTGRES_DB=${KLIO_EXPL_DB_POSTGRES_DB:-expl}
 
 volumes:
   db-data:

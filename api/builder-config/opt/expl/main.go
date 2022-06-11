@@ -5,11 +5,12 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
 func main() {
-	db, err := sql.Open("postgres", "postgres://postgres:HJFHSN2OFJFEC52UKV2CMNBBKQ@db:5432/postgres?sslmode=disable")
+	db, err := sql.Open("postgres", os.Getenv("CONNECT_STRING"))
 	if err != nil {
 		log.Fatal(err)
 	}
