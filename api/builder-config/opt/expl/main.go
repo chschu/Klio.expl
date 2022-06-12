@@ -1,36 +1,36 @@
 package main
 
 import (
-	"database/sql"
 	_ "github.com/lib/pq"
-	"log"
+	"github.com/sirupsen/logrus"
+	"klio/expl/expldb"
 	"net/http"
 	"os"
 	"time"
 )
 
 func main() {
-	db, err := sql.Open("postgres", os.Getenv("CONNECT_STRING"))
+	logrus.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339Nano,
+	})
+
+	edb, err := expldb.Init(os.Getenv("CONNECT_STRING"))
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
+	defer func(e *expldb.ExplDB) {
+		err := e.Close()
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}(edb)
+	logrus.Info("Database successfully initialized")
 
-	for db.Ping() != nil {
-		log.Println("Waiting for database...")
-		time.Sleep(time.Second)
-	}
-	log.Println("Database is available")
-
-	err = MigrateDatabase(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("Database successfully migrated")
-
-	log.Println("Listening for HTTP connections...")
+	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", nil)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
-	log.Println("Shutting down")
+
+	logrus.Info("Shutting down")
 }
