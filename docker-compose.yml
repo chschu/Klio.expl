@@ -5,8 +5,6 @@ services:
     build:
       context: api
     hostname: ${KLIO_EXPL_API_HOSTNAME:-klio-expl-api}
-    depends_on:
-      - db
     ports:
       - 8000:8000
     environment:
