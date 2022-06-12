@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
@@ -19,7 +19,7 @@ func Init(databaseURL string) (*ExplDB, error) {
 	}
 
 	waitUntilAvailable(db)
-	err = applyMigrations(db)
+	err = applyMigrations(databaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func waitUntilAvailable(db *sql.DB) {
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func applyMigrations(db *sql.DB) (err error) {
+func applyMigrations(databaseUrl string) (err error) {
 	handleDeferredCloseError := func(c io.Closer) {
 		closeErr := c.Close()
 		if closeErr != nil {
@@ -51,19 +51,13 @@ func applyMigrations(db *sql.DB) (err error) {
 		}
 	}
 
-	dbDrv, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return err
-	}
-	defer handleDeferredCloseError(dbDrv)
-
 	srcDrv, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return err
 	}
 	defer handleDeferredCloseError(srcDrv)
 
-	mig, err := migrate.NewWithInstance("iofs", srcDrv, "postgres", dbDrv)
+	mig, err := migrate.NewWithSourceInstance("iofs", srcDrv, databaseUrl)
 	if err != nil {
 		return err
 	}

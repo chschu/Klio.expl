@@ -1,0 +1,4 @@
+CREATE OR REPLACE TRIGGER entry_insert
+    INSTEAD OF INSERT ON entry
+    FOR EACH ROW
+    EXECUTE FUNCTION entry_insert()
