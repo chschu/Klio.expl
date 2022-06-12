@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS expl (
+CREATE TABLE IF NOT EXISTS entry_data (
     id SERIAL PRIMARY KEY,               -- unique id; monotonicity is required for some queries
     key TEXT NOT NULL,                   -- entry key in its original notation
     key_normalized TEXT NOT NULL,        -- normalized entry key; main search criterion
