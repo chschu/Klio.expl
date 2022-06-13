@@ -1,14 +1,15 @@
 package expldb
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
-	"io"
+	"klio/expl/util"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func Init(databaseURL string) (*ExplDB, error) {
 	}
 
 	waitUntilAvailable(db)
-	err = applyMigrations(databaseURL)
+	err = applyMigrations(db)
 	if err != nil {
 		return nil, err
 	}
@@ -43,24 +44,32 @@ func waitUntilAvailable(db *sql.DB) {
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func applyMigrations(databaseUrl string) (err error) {
-	handleDeferredCloseError := func(c io.Closer) {
-		closeErr := c.Close()
-		if closeErr != nil {
-			err = multierror.Append(err, closeErr)
-		}
-	}
-
+func applyMigrations(db *sql.DB) (err error) {
 	srcDrv, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return err
 	}
-	defer handleDeferredCloseError(srcDrv)
+	defer util.CloseAndAppendError(srcDrv, &err)
 
-	mig, err := migrate.NewWithSourceInstance("iofs", srcDrv, databaseUrl)
+	conn, err := db.Conn(context.Background())
 	if err != nil {
 		return err
 	}
+	defer util.CloseAndAppendError(conn, &err)
+
+	// postgres.WithInstance(...) is not used here, because its *sql.Conn cannot be closed without closing the *sql.DB
+	dbDrv, err := postgres.WithConnection(context.Background(), conn, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	// dbDrv.Close() is not deferred here because that would call conn.Close() again and fail
+
+	mig, err := migrate.NewWithInstance("iofs", srcDrv, "postgres", dbDrv)
+	if err != nil {
+		return err
+	}
+	// mig.Close() is not deferred here because that would call dbDrv.Close(), which woul call conn.Close() and fail
+
 	mig.Log = &migrateLoggerAdapter{}
 
 	err = mig.Up()

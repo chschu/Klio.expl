@@ -1,20 +1,12 @@
 package expldb
 
 import (
-	"github.com/hashicorp/go-multierror"
-	"io"
 	"klio/expl/types"
+	"klio/expl/util"
 	"time"
 )
 
 func (e *ExplDB) Add(key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error) {
-	handleDeferredCloseError := func(c io.Closer) {
-		closeErr := c.Close()
-		if closeErr != nil {
-			err = multierror.Append(err, closeErr)
-		}
-	}
-
 	stmt, err := e.db.Prepare(
 		"INSERT INTO entry(key, value, created_by, created_at) " +
 			"VALUES($1, $2, $3, $4) " +
@@ -22,7 +14,7 @@ func (e *ExplDB) Add(key string, value string, createdBy string, createdAt time.
 	if err != nil {
 		return nil, err
 	}
-	defer handleDeferredCloseError(stmt)
+	defer util.CloseAndAppendError(stmt, &err)
 
 	row := stmt.QueryRow(key, value, createdBy, createdAt)
 	entry = &types.Entry{}
