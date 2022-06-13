@@ -2,19 +2,19 @@ package expldb
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"klio/expl/util"
 	"time"
 )
 
 func Init(databaseURL string) (*ExplDB, error) {
-	db, err := sql.Open("postgres", databaseURL)
+	db, err := sqlx.Open("postgres", databaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (e *ExplDB) Close() error {
 	return e.db.Close()
 }
 
-func waitUntilAvailable(db *sql.DB) {
+func waitUntilAvailable(db *sqlx.DB) {
 	for db.Ping() != nil {
 		logrus.Info("Waiting for database...")
 		time.Sleep(time.Second)
@@ -44,7 +44,7 @@ func waitUntilAvailable(db *sql.DB) {
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func applyMigrations(db *sql.DB) (err error) {
+func applyMigrations(db *sqlx.DB) (err error) {
 	srcDrv, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return err

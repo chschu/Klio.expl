@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/jmoiron/sqlx v1.3.1
 	github.com/lib/pq v1.10.6
 	github.com/sirupsen/logrus v1.8.1
 )

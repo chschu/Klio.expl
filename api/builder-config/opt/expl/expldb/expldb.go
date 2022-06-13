@@ -1,9 +1,9 @@
 package expldb
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 type ExplDB struct {
-	db *sql.DB
+	db *sqlx.DB
 }
