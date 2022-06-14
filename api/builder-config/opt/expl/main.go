@@ -4,6 +4,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/types"
 	"net/http"
 	"os"
 	"time"
