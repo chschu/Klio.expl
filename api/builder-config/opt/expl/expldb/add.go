@@ -7,9 +7,8 @@ import (
 
 func (e *ExplDB) Add(key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error) {
 	entry = &types.Entry{}
-	err = e.db.Get(entry,
-		"INSERT INTO entry(key, value, created_by, created_at) VALUES($1, $2, $3, $4) RETURNING *",
-		key, value, createdBy, createdAt)
+	sql := "INSERT INTO entry(key, value, created_by, created_at) VALUES(?, ?, ?, ?) RETURNING *"
+	err = e.db.Get(entry, e.db.Rebind(sql), key, value, createdBy, createdAt)
 	if err != nil {
 		return nil, err
 	}

@@ -1,16 +1,10 @@
 package expldb
 
 import (
-	"fmt"
 	"klio/expl/types"
 )
 
-func indexRangesSqlCondition(indexRanges []types.IndexRange, params []any) (string, []any) {
-	nextParamPart := func(value any) string {
-		params = append(params, value)
-		return fmt.Sprintf("$%d", len(params))
-	}
-
+func indexRangesSqlCondition(indexRanges []types.IndexRange) (sqlCondition string, params []any) {
 	indexPart := func(cmp string, index types.Index) string {
 		var prefix string
 		if index.Descending() {
@@ -18,17 +12,17 @@ func indexRangesSqlCondition(indexRanges []types.IndexRange, params []any) (stri
 		} else {
 			prefix = ""
 		}
-		return prefix + index.DatabaseColumn() + cmp + prefix + nextParamPart(index.Value())
+		params = append(params, index.Value())
+		return prefix + index.DatabaseColumn() + cmp + prefix + "?"
 	}
 
 	indexRangePart := func(indexRange types.IndexRange) string {
 		return indexPart(">=", indexRange.From) + " AND " + indexPart("<=", indexRange.To)
 	}
 
-	sqlCondition := "false"
+	sqlCondition = "false"
 	for _, indexRange := range indexRanges {
 		sqlCondition += " OR (" + indexRangePart(indexRange) + ")"
 	}
-
 	return sqlCondition, params
 }
