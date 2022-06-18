@@ -13,6 +13,8 @@ type IndexRange struct {
 	To   Index
 }
 
+type IndexSpec []IndexRange
+
 type HeadIndex uint
 
 func (i HeadIndex) Value() uint {

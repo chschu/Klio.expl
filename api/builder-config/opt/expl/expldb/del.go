@@ -4,8 +4,8 @@ import (
 	"klio/expl/types"
 )
 
-func (e *ExplDB) Del(key string, indexRanges []types.IndexRange) (entries []types.Entry, err error) {
-	irc, params := indexRangesSqlCondition(indexRanges)
+func (e *ExplDB) Del(key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
+	irc, params := indexSpecSqlCondition(indexSpec)
 	sql := "DELETE FROM entry WHERE (" + irc + ") AND key_normalized = NORMALIZE(LOWER(?), NFC) RETURNING *"
 	params = append(params, key)
 	err = e.db.Select(&entries, e.db.Rebind(sql), params...)

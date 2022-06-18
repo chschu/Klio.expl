@@ -4,7 +4,7 @@ import (
 	"klio/expl/types"
 )
 
-func indexRangesSqlCondition(indexRanges []types.IndexRange) (sqlCondition string, params []any) {
+func indexSpecSqlCondition(indexSpec types.IndexSpec) (sqlCondition string, params []any) {
 	indexPart := func(cmp string, index types.Index) string {
 		var prefix string
 		if index.Descending() {
@@ -21,7 +21,7 @@ func indexRangesSqlCondition(indexRanges []types.IndexRange) (sqlCondition strin
 	}
 
 	sqlCondition = "false"
-	for _, indexRange := range indexRanges {
+	for _, indexRange := range indexSpec {
 		sqlCondition += " OR (" + indexRangePart(indexRange) + ")"
 	}
 	return sqlCondition, params
