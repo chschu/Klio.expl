@@ -9,6 +9,7 @@ services:
       - 8000:8000
     environment:
       - CONNECT_STRING=${KLIO_EXPL_API_CONNECT_STRING:-postgres://postgres:HJFHSN2OFJFEC52UKV2CMNBBKQ@klio-expl-db/expl?sslmode=disable}
+      - WEBHOOK_TOKEN_ADD=${KLIO_EXPL_API_WEBHOOK_TOKEN_ADD:-7d5fag3bbp8y3b8761swchz4yh}
   db:
     image: postgres:14.3-alpine3.16
     hostname: ${KLIO_EXPL_DB_HOSTNAME:-klio-expl-db}

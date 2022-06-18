@@ -4,7 +4,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
-	"klio/expl/types"
+	"klio/expl/webhook"
 	"net/http"
 	"os"
 	"time"
@@ -15,7 +15,7 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	})
 
-	edb, err := expldb.Init(os.Getenv("CONNECT_STRING"))
+	edb, err := expldb.Init(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -27,6 +27,8 @@ func main() {
 	}(edb)
 	logrus.Info("Database successfully initialized")
 
+	http.Handle("/expl/add", webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD")))
+
 	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", nil)
 	if err != nil {
@@ -34,4 +36,12 @@ func main() {
 	}
 
 	logrus.Info("Shutting down")
+}
+
+func mustLookupEnv(key string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		logrus.Fatalf("environment variable not set: %v", key)
+	}
+	return value
 }
