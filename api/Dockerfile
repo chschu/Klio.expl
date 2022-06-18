@@ -10,6 +10,8 @@ FROM alpine:3.16
 
 LABEL org.opencontainers.image.authors="Christian Schuster <christian@dnup.de>"
 
+RUN apk --no-cache add tzdata
+
 RUN adduser -s /bin/bash -g expl -D -H expl
 USER expl
 
