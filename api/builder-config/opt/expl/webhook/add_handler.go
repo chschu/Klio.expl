@@ -2,13 +2,12 @@ package webhook
 
 import (
 	"fmt"
-	"golang.org/x/text/unicode/norm"
 	"klio/expl/expldb"
 	"klio/expl/settings"
 	"net/http"
 	"regexp"
 	"time"
-	"unicode/utf8"
+	"unicode/utf16"
 )
 
 func NewAddHandler(edb *expldb.ExplDB, token string) http.Handler {
@@ -36,11 +35,11 @@ func (a *addHandler) Handle(in *Request) (*Response, error) {
 	key := match[sep.SubexpIndex("Key")]
 	value := match[sep.SubexpIndex("Value")]
 
-	if utf8.RuneCountInString(norm.NFC.String(key)) > settings.MaxRuneCountForNormalizedKey {
+	if len(utf16.Encode([]rune(key))) > settings.MaxUTF16LengthForKey {
 		return NewResponse("Tut mir leid, der Begriff ist leider zu lang."), nil
 	}
 
-	if utf8.RuneCountInString(norm.NFC.String(value)) > settings.MaxRuneCountForNormalizedValue {
+	if len(utf16.Encode([]rune(value))) > settings.MaxUTF16LengthForValue {
 		return NewResponse("Tut mir leid, die Erklärung ist leider zu lang."), nil
 	}
 
