@@ -58,28 +58,25 @@ func (e *explHandler) Handle(in *Request) (*Response, error) {
 	if count == 0 {
 		text = "Ich habe leider keinen Eintrag gefunden."
 	} else {
-		var caption string
 		var limitedEntries []types.Entry
 		if count > settings.MaxExplCount {
 			// TODO add URL
-			caption = fmt.Sprintf("Ich habe %d Einträge gefunden, das sind die letzten %d:",
+			text = fmt.Sprintf("Ich habe %d Einträge gefunden, das sind die letzten %d:\n",
 				count, settings.MaxExplCount)
 			limitedEntries = entries[count-settings.MaxExplCount:]
 		} else {
 			if count == 1 {
-				caption = "Ich habe den folgenden Eintrag gefunden:"
+				text = "Ich habe den folgenden Eintrag gefunden:\n"
 			} else {
-				caption = "Ich habe folgende Einträge gefunden:"
+				text = fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count)
 			}
 			limitedEntries = entries
 		}
-
-		var entriesText = ""
+		text += "```\n"
 		for _, entry := range limitedEntries {
-			entriesText += entry.String() + "\n"
+			text += entry.String() + "\n"
 		}
-
-		text = fmt.Sprintf("%s\n```\n%s```", caption, entriesText)
+		text += "```"
 	}
 
 	return NewResponse(text), nil

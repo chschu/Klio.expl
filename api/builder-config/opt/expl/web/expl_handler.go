@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
@@ -37,7 +38,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if count == 1 {
 			text = "Ich habe den folgenden Eintrag gefunden:\n"
 		} else {
-			text = "Ich habe folgende Einträge gefunden:\n"
+			text = fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count)
 		}
 		for _, entry := range entries {
 			text += entry.String() + "\n"
