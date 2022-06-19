@@ -48,9 +48,5 @@ func (a *addHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	return NewResponse(fmt.Sprintf(
-		"Ich habe den folgenden neuen Eintrag hinzugefügt:\n```\n%s[%s/%s]\n```",
-		entry.Key,
-		entry.HeadIndex,
-		entry.PermanentIndex)), nil
+	return NewResponse(fmt.Sprintf("Ich habe den folgenden neuen Eintrag hinzugefügt:\n```\n%s\n```", entry)), nil
 }
