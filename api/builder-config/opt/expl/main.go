@@ -1,9 +1,11 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/web"
 	"klio/expl/webhook"
 	"net/http"
 	"os"
@@ -27,12 +29,14 @@ func main() {
 	}(edb)
 	logrus.Info("Database successfully initialized")
 
-	http.Handle("/expl/add", webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD")))
-	http.Handle("/expl/expl", webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL")))
-	http.Handle("/expl/del", webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL")))
+	r := mux.NewRouter()
+	r.Handle("/api/add", webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD")))
+	r.Handle("/api/expl", webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL")))
+	r.Handle("/api/del", webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL")))
+	r.Handle("/expl/{key:.*}", web.NewExplHandler(edb))
 
 	logrus.Info("Listening for HTTP connections...")
-	err = http.ListenAndServe(":8000", nil)
+	err = http.ListenAndServe(":8000", r)
 	if err != nil {
 		logrus.Fatal(err)
 	}
