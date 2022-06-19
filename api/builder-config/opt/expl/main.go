@@ -28,6 +28,7 @@ func main() {
 	logrus.Info("Database successfully initialized")
 
 	http.Handle("/expl/add", webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD")))
+	http.Handle("/expl/expl", webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL")))
 	http.Handle("/expl/del", webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL")))
 
 	logrus.Info("Listening for HTTP connections...")
