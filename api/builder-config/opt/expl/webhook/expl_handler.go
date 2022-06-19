@@ -2,30 +2,34 @@ package webhook
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/settings"
 	"klio/expl/types"
 	"net/http"
+	"net/url"
 	"regexp"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, token string) http.Handler {
+func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string) http.Handler {
 	return NewHandlerAdapter(&explHandler{
-		edb:   edb,
-		token: token,
+		edb:               edb,
+		token:             token,
+		webExplPathPrefix: webExplPathPrefix,
 	})
 }
 
 type explHandler struct {
-	edb   *expldb.ExplDB
-	token string
+	edb               *expldb.ExplDB
+	token             string
+	webExplPathPrefix string
 }
 
 func (e *explHandler) Token() string {
 	return e.token
 }
 
-func (e *explHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
+func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> ( <Index> | <VonIndex>:<BisIndex> )*", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)(?:\\pZ+(?P<IndexSpec>.*?))?\\pZ*$")
@@ -60,9 +64,15 @@ func (e *explHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 	} else {
 		var limitedEntries []types.Entry
 		if count > settings.MaxExplCount {
-			// TODO add URL
-			text = fmt.Sprintf("Ich habe %d Einträge gefunden, das sind die letzten %d:\n",
-				count, settings.MaxExplCount)
+			urlText := ""
+			explUrl, err := e.getWebExplUrl(r, key)
+			if err != nil {
+				logrus.Warnf("unable to resolve URL for web expl: %v", err)
+			} else {
+				urlText = fmt.Sprintf(" (%s)", explUrl)
+			}
+			text = fmt.Sprintf("Ich habe %d Einträge gefunden%s, das sind die letzten %d:\n",
+				count, urlText, settings.MaxExplCount)
 			limitedEntries = entries[count-settings.MaxExplCount:]
 		} else {
 			if count == 1 {
@@ -80,4 +90,16 @@ func (e *explHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 	}
 
 	return NewResponse(text), nil
+}
+
+func (e *explHandler) getWebExplUrl(r *http.Request, key string) (*url.URL, error) {
+	scheme := r.URL.Scheme
+	if scheme == "" {
+		if r.TLS == nil {
+			scheme = "http"
+		} else {
+			scheme = "https"
+		}
+	}
+	return url.Parse(scheme + "://" + r.Host + e.webExplPathPrefix + url.PathEscape(key))
 }

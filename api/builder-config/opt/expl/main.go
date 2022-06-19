@@ -31,7 +31,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD")))
-	r.Handle("/api/expl", webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL")))
+	r.Handle("/api/expl", webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/"))
 	r.Handle("/api/del", webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL")))
 	r.Handle("/expl/{key:.*}", web.NewExplHandler(edb))
 
