@@ -15,6 +15,20 @@ type IndexRange struct {
 
 type IndexSpec []IndexRange
 
+func IndexSpecAll() IndexSpec {
+	return []IndexRange{{
+		From: HeadIndex(1),
+		To:   TailIndex(1),
+	}}
+}
+
+func IndexSpecSingle(index Index) IndexSpec {
+	return []IndexRange{{
+		From: index,
+		To:   index,
+	}}
+}
+
 type HeadIndex uint
 
 func (i HeadIndex) Value() uint {

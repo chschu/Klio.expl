@@ -40,10 +40,7 @@ func (d *delHandler) Handle(in *Request) (*Response, error) {
 		return syntaxResponse, nil
 	}
 
-	entries, err := d.edb.Del(key, []types.IndexRange{{
-		From: index,
-		To:   index,
-	}})
+	entries, err := d.edb.Del(key, types.IndexSpecSingle(index))
 	if err != nil {
 		return nil, err
 	}

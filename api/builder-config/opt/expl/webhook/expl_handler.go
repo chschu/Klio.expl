@@ -38,7 +38,7 @@ func (e *explHandler) Handle(in *Request) (*Response, error) {
 
 	var indexSpec types.IndexSpec
 	if len(indexSpecStr) == 0 {
-		indexSpec = []types.IndexRange{{types.HeadIndex(1), types.TailIndex(1)}}
+		indexSpec = types.IndexSpecAll()
 	} else {
 		var err error
 		indexSpec, err = parseIndexSpec(indexSpecStr)
