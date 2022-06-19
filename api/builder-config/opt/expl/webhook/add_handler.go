@@ -26,7 +26,7 @@ func (a *addHandler) Token() string {
 	return a.token
 }
 
-func (a *addHandler) Handle(in *Request) (*Response, error) {
+func (a *addHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Value>\\PZ.*?)\\pZ*$")
 	match := sep.FindStringSubmatch(in.Text)
 	if match == nil {

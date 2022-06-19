@@ -24,7 +24,7 @@ func (d *delHandler) Token() string {
 	return d.token
 }
 
-func (d *delHandler) Handle(in *Request) (*Response, error) {
+func (d *delHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> <Index>", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Index>.*?)\\pZ*$")

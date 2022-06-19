@@ -7,7 +7,7 @@ import (
 )
 
 type Handler interface {
-	Handle(p *Request) (*Response, error)
+	Handle(in *Request, r *http.Request) (*Response, error)
 	Token() string
 }
 
@@ -36,7 +36,7 @@ func (a *handlerAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := a.handler.Handle(&in)
+	out, err := a.handler.Handle(&in, r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error handling decoded request: %v", err)

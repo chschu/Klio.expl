@@ -25,7 +25,7 @@ func (e *explHandler) Token() string {
 	return e.token
 }
 
-func (e *explHandler) Handle(in *Request) (*Response, error) {
+func (e *explHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> ( <Index> | <VonIndex>:<BisIndex> )*", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)(?:\\pZ+(?P<IndexSpec>.*?))?\\pZ*$")
