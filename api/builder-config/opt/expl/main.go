@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/importer"
 	"klio/expl/security"
 	"klio/expl/settings"
 	"klio/expl/web"
@@ -42,6 +43,11 @@ func main() {
 		}
 	}(edb)
 	logrus.Info("Database successfully initialized")
+
+	err = importer.Import()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	wrap := timeoutHandlerTransform(settings.HandlerTimeout)
 	if mustLookupUseProxyHeaders() {
