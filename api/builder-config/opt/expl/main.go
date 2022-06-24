@@ -42,6 +42,7 @@ func main() {
 	r.Handle("/api/add", wrap(webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD"))))
 	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/")))
 	r.Handle("/api/del", wrap(webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL"))))
+	r.Handle("/api/top", wrap(webhook.NewTopHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_TOP"))))
 	r.Handle("/expl/{key:.*}", wrap(web.NewExplHandler(edb)))
 
 	logrus.Info("Listening for HTTP connections...")
