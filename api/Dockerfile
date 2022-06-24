@@ -1,10 +1,12 @@
+# syntax=docker/dockerfile:1.4.2
+
 FROM golang:1.18.3-alpine3.16 AS builder
 
 COPY builder-config/ /
 
 WORKDIR /opt/expl
-RUN go install
 
+RUN --mount=type=cache,target=/go/pkg go install
 
 FROM alpine:3.16
 
