@@ -5,21 +5,31 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/security"
 	"net/http"
 )
 
-func NewFindHandler(edb *expldb.ExplDB) http.Handler {
+func NewFindHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidate) http.Handler {
 	return &findHandler{
-		edb: edb,
+		edb:         edb,
+		jwtValidate: jwtValidate,
 	}
 }
 
 type findHandler struct {
-	edb *expldb.ExplDB
+	edb         *expldb.ExplDB
+	jwtValidate security.JwtValidate
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	rex := mux.Vars(r)["regex"]
+	jwtStr := mux.Vars(r)["jwt"]
+
+	rex, err := f.jwtValidate(jwtStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		logrus.Infof("failed to validate JWT: %v", err)
+		return
+	}
 
 	entries, err := f.edb.Find(rex)
 	if err != nil && err != expldb.ErrFindRegexInvalid {

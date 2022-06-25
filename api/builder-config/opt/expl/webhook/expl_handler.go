@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/security"
 	"klio/expl/settings"
 	"klio/expl/types"
 	"net/http"
@@ -11,11 +12,12 @@ import (
 	"regexp"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string) http.Handler {
+func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string, jwtGenerate security.JwtGenerate) http.Handler {
 	return NewHandlerAdapter(&explHandler{
 		edb:               edb,
 		token:             token,
 		webExplPathPrefix: webExplPathPrefix,
+		jwtGenerate:       jwtGenerate,
 	})
 }
 
@@ -23,6 +25,7 @@ type explHandler struct {
 	edb               *expldb.ExplDB
 	token             string
 	webExplPathPrefix string
+	jwtGenerate       security.JwtGenerate
 }
 
 func (e *explHandler) Token() string {
@@ -101,5 +104,9 @@ func (e *explHandler) getWebExplUrl(r *http.Request, key string) (*url.URL, erro
 			scheme = "https"
 		}
 	}
-	return url.Parse(scheme + "://" + r.Host + e.webExplPathPrefix + url.PathEscape(key))
+	jwtStr, err := e.jwtGenerate(key, settings.ExplTokenValidity)
+	if err != nil {
+		return nil, err
+	}
+	return url.Parse(scheme + "://" + r.Host + e.webExplPathPrefix + jwtStr)
 }

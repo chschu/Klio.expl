@@ -5,22 +5,32 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/security"
 	"klio/expl/types"
 	"net/http"
 )
 
-func NewExplHandler(edb *expldb.ExplDB) http.Handler {
+func NewExplHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidate) http.Handler {
 	return &explHandler{
-		edb: edb,
+		edb:         edb,
+		jwtValidate: jwtValidate,
 	}
 }
 
 type explHandler struct {
-	edb *expldb.ExplDB
+	edb         *expldb.ExplDB
+	jwtValidate security.JwtValidate
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	key := mux.Vars(r)["key"]
+	jwtStr := mux.Vars(r)["jwt"]
+
+	key, err := e.jwtValidate(jwtStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		logrus.Infof("failed to validate JWT: %v", err)
+		return
+	}
 
 	entries, err := e.edb.Expl(key, types.IndexSpecAll())
 	if err != nil {

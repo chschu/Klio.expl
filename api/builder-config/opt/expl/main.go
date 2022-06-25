@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/security"
 	"klio/expl/web"
 	"klio/expl/webhook"
 	"net/http"
@@ -18,6 +19,11 @@ func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: time.RFC3339Nano,
 	})
+
+	jwtGenerate, jwtValidate, err := security.NewJwtHandlers()
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	edb, err := expldb.Init(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
@@ -40,12 +46,12 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", wrap(webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD"))))
-	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/")))
+	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/", jwtGenerate)))
 	r.Handle("/api/del", wrap(webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL"))))
-	r.Handle("/api/find", wrap(webhook.NewFindHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_FIND"), "/find/")))
+	r.Handle("/api/find", wrap(webhook.NewFindHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_FIND"), "/find/", jwtGenerate)))
 	r.Handle("/api/top", wrap(webhook.NewTopHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_TOP"))))
-	r.Handle("/expl/{key:.*}", wrap(web.NewExplHandler(edb)))
-	r.Handle("/find/{regex:.*}", wrap(web.NewFindHandler(edb)))
+	r.Handle("/expl/{jwt:.*}", wrap(web.NewExplHandler(edb, jwtValidate)))
+	r.Handle("/find/{jwt:.*}", wrap(web.NewFindHandler(edb, jwtValidate)))
 
 	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", r)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
+	"klio/expl/security"
 	"klio/expl/settings"
 	"klio/expl/types"
 	"net/http"
@@ -11,11 +12,12 @@ import (
 	"regexp"
 )
 
-func NewFindHandler(edb *expldb.ExplDB, token string, webFindPathPrefix string) http.Handler {
+func NewFindHandler(edb *expldb.ExplDB, token string, webFindPathPrefix string, jwtGenerate security.JwtGenerate) http.Handler {
 	return NewHandlerAdapter(&findHandler{
 		edb:               edb,
 		token:             token,
 		webFindPathPrefix: webFindPathPrefix,
+		jwtGenerate:       jwtGenerate,
 	})
 }
 
@@ -23,6 +25,7 @@ type findHandler struct {
 	edb               *expldb.ExplDB
 	token             string
 	webFindPathPrefix string
+	jwtGenerate       security.JwtGenerate
 }
 
 func (f *findHandler) Token() string {
@@ -83,7 +86,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	return NewResponse(text), nil
 }
 
-func (f *findHandler) getWebFindUrl(r *http.Request, regexStr string) (*url.URL, error) {
+func (f *findHandler) getWebFindUrl(r *http.Request, rex string) (*url.URL, error) {
 	scheme := r.URL.Scheme
 	if scheme == "" {
 		if r.TLS == nil {
@@ -92,5 +95,9 @@ func (f *findHandler) getWebFindUrl(r *http.Request, regexStr string) (*url.URL,
 			scheme = "https"
 		}
 	}
-	return url.Parse(scheme + "://" + r.Host + f.webFindPathPrefix + url.PathEscape(regexStr))
+	jwtStr, err := f.jwtGenerate(rex, settings.FindTokenValidity)
+	if err != nil {
+		return nil, err
+	}
+	return url.Parse(scheme + "://" + r.Host + f.webFindPathPrefix + jwtStr)
 }
