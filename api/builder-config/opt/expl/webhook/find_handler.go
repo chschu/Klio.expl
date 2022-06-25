@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 func NewFindHandler(edb *expldb.ExplDB, token string, webFindPathPrefix string, jwtGenerate security.JwtGenerate) http.Handler {
@@ -52,9 +53,9 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 
 	count := len(entries)
 
-	var text string
+	var sb strings.Builder
 	if count == 0 {
-		text = "Ich habe leider keinen Eintrag gefunden."
+		sb.WriteString("Ich habe leider keinen Eintrag gefunden.")
 	} else {
 		var limitedEntries []types.Entry
 		if count > settings.MaxFindCount {
@@ -66,25 +67,26 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 			} else {
 				entriesText = fmt.Sprintf("[%d Einträge](%s)", count, findUrl)
 			}
-			text = fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
-				entriesText, settings.MaxFindCount)
+			sb.WriteString(fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
+				entriesText, settings.MaxFindCount))
 			limitedEntries = entries[count-settings.MaxFindCount:]
 		} else {
 			if count == 1 {
-				text = "Ich habe den folgenden Eintrag gefunden:\n"
+				sb.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
 			} else {
-				text = fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count)
+				sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
 			}
 			limitedEntries = entries
 		}
-		text += "```\n"
+		sb.WriteString("```\n")
 		for _, entry := range limitedEntries {
-			text += entry.String() + "\n"
+			sb.WriteString(entry.String())
+			sb.WriteRune('\n')
 		}
-		text += "```"
+		sb.WriteString("```")
 	}
 
-	return NewResponse(text), nil
+	return NewResponse(sb.String()), nil
 }
 
 func (f *findHandler) getWebFindUrl(r *http.Request, rex string) (*url.URL, error) {

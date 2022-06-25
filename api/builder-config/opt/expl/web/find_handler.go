@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -40,17 +41,18 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	count := len(entries)
 
-	var text string
+	var buf bytes.Buffer
 	if count == 0 {
-		text = "Ich habe leider keinen Eintrag gefunden.\n"
+		buf.WriteString("Ich habe leider keinen Eintrag gefunden.\n")
 	} else {
 		if count == 1 {
-			text = "Ich habe den folgenden Eintrag gefunden:\n"
+			buf.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
 		} else {
-			text = fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count)
+			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
 		}
 		for _, entry := range entries {
-			text += entry.String() + "\n"
+			buf.WriteString(entry.String())
+			buf.WriteRune('\n')
 		}
 	}
 
@@ -61,7 +63,7 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Set("Expires", "0")
 	h.Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
 
-	_, err = w.Write([]byte(text))
+	_, err = buf.WriteTo(w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error writing response: %v", err)

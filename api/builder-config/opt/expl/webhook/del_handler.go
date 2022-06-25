@@ -6,6 +6,7 @@ import (
 	"klio/expl/types"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 func NewDelHandler(edb *expldb.ExplDB, token string) http.Handler {
@@ -45,20 +46,24 @@ func (d *delHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	var entriesText = ""
-	for _, entry := range entries {
-		entriesText += entry.String() + "\n"
+	count := len(entries)
+
+	var sb strings.Builder
+	if count == 0 {
+		sb.WriteString("Ich habe leider keinen Eintrag zum Löschen gefunden.")
+	} else {
+		if count == 1 {
+			sb.WriteString("Ich habe den folgenden Eintrag gelöscht:\n")
+		} else {
+			sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gelöscht:\n", count))
+		}
+		sb.WriteString("```\n")
+		for _, entry := range entries {
+			sb.WriteString(entry.String())
+			sb.WriteRune('\n')
+		}
+		sb.WriteString("```")
 	}
 
-	var text string
-	switch len(entries) {
-	case 0:
-		text = "Ich habe leider keinen Eintrag zum Löschen gefunden."
-	case 1:
-		text = fmt.Sprintf("Ich habe den folgenden Eintrag gelöscht:\n```\n%s```", entriesText)
-	default:
-		text = fmt.Sprintf("Ich habe folgende Einträge gelöscht:\n```\n%s```", entriesText)
-	}
-
-	return NewResponse(text), nil
+	return NewResponse(sb.String()), nil
 }
