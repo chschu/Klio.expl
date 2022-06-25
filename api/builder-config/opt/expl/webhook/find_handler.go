@@ -58,15 +58,16 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	} else {
 		var limitedEntries []types.Entry
 		if count > settings.MaxFindCount {
-			urlText := ""
+			var entriesText string
 			findUrl, err := f.getWebFindUrl(r, rex)
 			if err != nil {
-				logrus.Warnf("unable to resolve URL for web expl: %v", err)
+				logrus.Warnf("unable to resolve URL for web find: %v", err)
+				entriesText = fmt.Sprintf("%d Einträge", count)
 			} else {
-				urlText = fmt.Sprintf(" (%s)", findUrl)
+				entriesText = fmt.Sprintf("[%d Einträge](%s)", count, findUrl)
 			}
-			text = fmt.Sprintf("Ich habe %d Einträge gefunden%s, das sind die letzten %d:\n",
-				count, urlText, settings.MaxFindCount)
+			text = fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
+				entriesText, settings.MaxFindCount)
 			limitedEntries = entries[count-settings.MaxFindCount:]
 		} else {
 			if count == 1 {

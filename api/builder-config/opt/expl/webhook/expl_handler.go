@@ -67,15 +67,16 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	} else {
 		var limitedEntries []types.Entry
 		if count > settings.MaxExplCount {
-			urlText := ""
+			var entriesText string
 			explUrl, err := e.getWebExplUrl(r, key)
 			if err != nil {
 				logrus.Warnf("unable to resolve URL for web expl: %v", err)
+				entriesText = fmt.Sprintf("%d Einträge", count)
 			} else {
-				urlText = fmt.Sprintf(" (%s)", explUrl)
+				entriesText = fmt.Sprintf("[%d Einträge](%s)", count, explUrl)
 			}
-			text = fmt.Sprintf("Ich habe %d Einträge gefunden%s, das sind die letzten %d:\n",
-				count, urlText, settings.MaxExplCount)
+			text = fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
+				entriesText, settings.MaxExplCount)
 			limitedEntries = entries[count-settings.MaxExplCount:]
 		} else {
 			if count == 1 {
