@@ -55,7 +55,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		}
 	}
 
-	entries, err := e.edb.Expl(key, indexSpec)
+	entries, total, err := e.edb.ExplWithLimit(key, indexSpec, settings.MaxExplCount)
 	if err != nil {
 		return nil, err
 	}
@@ -63,32 +63,28 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	count := len(entries)
 
 	var sb strings.Builder
-	if count == 0 {
+	if total == 0 {
 		sb.WriteString("Ich habe leider keinen Eintrag gefunden.")
 	} else {
-		var limitedEntries []types.Entry
-		if count > settings.MaxExplCount {
-			var entriesText string
+		if total > count {
+			var totalText string
 			explUrl, err := e.getWebExplUrl(r, key)
 			if err != nil {
 				logrus.Warnf("unable to resolve URL for web expl: %v", err)
-				entriesText = fmt.Sprintf("%d Einträge", count)
+				totalText = fmt.Sprintf("%d Einträge", total)
 			} else {
-				entriesText = fmt.Sprintf("[%d Einträge](%s)", count, explUrl)
+				totalText = fmt.Sprintf("[%d Einträge](%s)", total, explUrl)
 			}
-			sb.WriteString(fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
-				entriesText, settings.MaxExplCount))
-			limitedEntries = entries[count-settings.MaxExplCount:]
+			sb.WriteString(fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n", totalText, count))
 		} else {
-			if count == 1 {
+			if total == 1 {
 				sb.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
 			} else {
-				sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
+				sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", total))
 			}
-			limitedEntries = entries
 		}
 		sb.WriteString("```\n")
-		for _, entry := range limitedEntries {
+		for _, entry := range entries {
 			sb.WriteString(entry.String())
 			sb.WriteRune('\n')
 		}

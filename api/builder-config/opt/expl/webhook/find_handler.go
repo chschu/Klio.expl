@@ -6,7 +6,6 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/settings"
-	"klio/expl/types"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -43,7 +42,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	}
 	rex := match[sep.SubexpIndex("Regex")]
 
-	entries, err := f.edb.Find(rex)
+	entries, total, err := f.edb.FindWithLimit(rex, settings.MaxFindCount)
 	if err == expldb.ErrFindRegexInvalid {
 		return syntaxResponse, nil
 	}
@@ -54,32 +53,28 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	count := len(entries)
 
 	var sb strings.Builder
-	if count == 0 {
+	if total == 0 {
 		sb.WriteString("Ich habe leider keinen Eintrag gefunden.")
 	} else {
-		var limitedEntries []types.Entry
-		if count > settings.MaxFindCount {
-			var entriesText string
+		if total > count {
+			var totalText string
 			findUrl, err := f.getWebFindUrl(r, rex)
 			if err != nil {
 				logrus.Warnf("unable to resolve URL for web find: %v", err)
-				entriesText = fmt.Sprintf("%d Einträge", count)
+				totalText = fmt.Sprintf("%d Einträge", total)
 			} else {
-				entriesText = fmt.Sprintf("[%d Einträge](%s)", count, findUrl)
+				totalText = fmt.Sprintf("[%d Einträge](%s)", total, findUrl)
 			}
-			sb.WriteString(fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n",
-				entriesText, settings.MaxFindCount))
-			limitedEntries = entries[count-settings.MaxFindCount:]
+			sb.WriteString(fmt.Sprintf("Ich habe %s gefunden, das sind die letzten %d:\n", totalText, count))
 		} else {
-			if count == 1 {
+			if total == 1 {
 				sb.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
 			} else {
-				sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
+				sb.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", total))
 			}
-			limitedEntries = entries
 		}
 		sb.WriteString("```\n")
-		for _, entry := range limitedEntries {
+		for _, entry := range entries {
 			sb.WriteString(entry.String())
 			sb.WriteRune('\n')
 		}
