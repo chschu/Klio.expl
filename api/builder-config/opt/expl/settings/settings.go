@@ -12,4 +12,5 @@ const (
 	MaxFindCount            = 20
 	FindTokenValidity       = time.Minute * 5
 	TopExplCount            = 100
+	HandlerTimeout          = time.Second * 2
 )

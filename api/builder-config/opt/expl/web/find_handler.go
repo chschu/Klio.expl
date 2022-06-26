@@ -32,7 +32,7 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := f.edb.Find(rex)
+	entries, err := f.edb.Find(r.Context(), rex)
 	if err != nil && err != expldb.ErrFindRegexInvalid {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error accessing entries: %v", err)

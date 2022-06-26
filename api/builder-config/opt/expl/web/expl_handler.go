@@ -33,7 +33,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := e.edb.Expl(key, types.IndexSpecAll())
+	entries, err := e.edb.Expl(r.Context(), key, types.IndexSpecAll())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error accessing entries: %v", err)

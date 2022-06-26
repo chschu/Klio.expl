@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
+	"klio/expl/settings"
 	"klio/expl/web"
 	"klio/expl/webhook"
 	"net/http"
@@ -37,11 +39,9 @@ func main() {
 	}(edb)
 	logrus.Info("Database successfully initialized")
 
-	var wrap func(http.Handler) http.Handler
+	wrap := timeoutHandlerTransform(settings.HandlerTimeout)
 	if mustLookupUseProxyHeaders() {
-		wrap = handlers.ProxyHeaders
-	} else {
-		wrap = func(h http.Handler) http.Handler { return h }
+		wrap = wrap.compose(handlers.ProxyHeaders)
 	}
 
 	r := mux.NewRouter()
@@ -60,6 +60,24 @@ func main() {
 	}
 
 	logrus.Info("Shutting down")
+}
+
+type handlerTransform func(http.Handler) http.Handler
+
+func (outer handlerTransform) compose(inner handlerTransform) handlerTransform {
+	return func(h http.Handler) http.Handler {
+		return outer(inner(h))
+	}
+}
+
+func timeoutHandlerTransform(timeout time.Duration) handlerTransform {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx, cancel := context.WithTimeout(r.Context(), timeout)
+			defer cancel()
+			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 func mustLookupUseProxyHeaders() bool {

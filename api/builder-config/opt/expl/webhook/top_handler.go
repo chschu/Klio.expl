@@ -31,7 +31,7 @@ func (e *topHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		return NewResponse(fmt.Sprintf("Syntax: %s", in.TriggerWord)), nil
 	}
 
-	entries, err := e.edb.Top(settings.TopExplCount)
+	entries, err := e.edb.Top(r.Context(), settings.TopExplCount)
 	if err != nil {
 		return nil, err
 	}

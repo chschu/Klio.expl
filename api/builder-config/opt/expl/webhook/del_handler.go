@@ -25,7 +25,7 @@ func (d *delHandler) Token() string {
 	return d.token
 }
 
-func (d *delHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
+func (d *delHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> <Index>", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Index>.*?)\\pZ*$")
@@ -41,7 +41,7 @@ func (d *delHandler) Handle(in *Request, _ *http.Request) (*Response, error) {
 		return syntaxResponse, nil
 	}
 
-	entries, err := d.edb.Del(key, types.IndexSpecSingle(index))
+	entries, err := d.edb.Del(r.Context(), key, types.IndexSpecSingle(index))
 	if err != nil {
 		return nil, err
 	}

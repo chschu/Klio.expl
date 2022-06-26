@@ -42,7 +42,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	}
 	rex := match[sep.SubexpIndex("Regex")]
 
-	entries, total, err := f.edb.FindWithLimit(rex, settings.MaxFindCount)
+	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, settings.MaxFindCount)
 	if err == expldb.ErrFindRegexInvalid {
 		return syntaxResponse, nil
 	}

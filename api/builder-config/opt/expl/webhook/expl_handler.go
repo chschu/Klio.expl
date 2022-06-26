@@ -55,7 +55,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		}
 	}
 
-	entries, total, err := e.edb.ExplWithLimit(key, indexSpec, settings.MaxExplCount)
+	entries, total, err := e.edb.ExplWithLimit(r.Context(), key, indexSpec, settings.MaxExplCount)
 	if err != nil {
 		return nil, err
 	}
