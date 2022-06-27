@@ -16,3 +16,4 @@ jobs:
           username: ${{ secrets.DOCKER_DNUP_DE_USERNAME }}
           password: ${{ secrets.DOCKER_DNUP_DE_PASSWORD }}
       - run: docker-compose build
+      - run: docker-compose push
