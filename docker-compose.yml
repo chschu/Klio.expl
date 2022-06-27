@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: api
-    image: docker.dnup.de/klio/expl/api:${KLIO_EXPL_API_IMAGE_VERSION:-latest}
+    image: dnup/klio.expl-api:${KLIO_EXPL_API_IMAGE_VERSION:-latest}
     hostname: ${KLIO_EXPL_API_HOSTNAME:-klio-expl-api}
     environment:
       - CONNECT_STRING=${KLIO_EXPL_API_CONNECT_STRING:-postgres://postgres:HJFHSN2OFJFEC52UKV2CMNBBKQ@klio-expl-db/expl?sslmode=disable}
