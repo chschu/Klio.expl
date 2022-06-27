@@ -8,4 +8,9 @@ jobs:
       DOCKER_BUILDKIT: 1
     steps:
       - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: docker.dnup.de
+          username: ${{ secrets.DOCKER_DNUP_DE_USERNAME }}
+          password: ${{ secrets.DOCKER_DNUP_DE_PASSWORD }}
       - run: docker-compose build
