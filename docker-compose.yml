@@ -14,6 +14,7 @@ services:
       - WEBHOOK_TOKEN_DEL=${KLIO_EXPL_API_WEBHOOK_TOKEN_DEL:-971xo4u447ddzy8b91qg5h8emw}
       - WEBHOOK_TOKEN_FIND=${KLIO_EXPL_API_WEBHOOK_TOKEN_FIND:-xq7sa668ptgm88otpjdsybcw7o}
       - WEBHOOK_TOKEN_TOP=${KLIO_EXPL_API_WEBHOOK_TOKEN_TOP:-mo76863nuiysxkcwabo7btwn9o}
+    restart: unless-stopped
   db:
     image: postgres:14.3-alpine3.16
     hostname: ${KLIO_EXPL_DB_HOSTNAME:-klio-expl-db}
@@ -21,3 +22,4 @@ services:
       - POSTGRES_USER=${KLIO_EXPL_DB_POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${KLIO_EXPL_DB_POSTGRES_PASSWORD:-HJFHSN2OFJFEC52UKV2CMNBBKQ}
       - POSTGRES_DB=${KLIO_EXPL_DB_POSTGRES_DB:-expl}
+    restart: unless-stopped
