@@ -1,0 +1,11 @@
+name: ci
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_DOCKER_CLI_BUILD: 1
+      DOCKER_BUILDKIT: 1
+    steps:
+      - uses: actions/checkout@v3
+      - run: docker-compose build
