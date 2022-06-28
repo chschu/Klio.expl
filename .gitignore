@@ -9,3 +9,6 @@
 # docker-compose environment overrides
 /.env
 /docker-compose.override.yml
+
+# custom data
+/.data/
