@@ -6,7 +6,7 @@ COPY builder-config/ /
 
 WORKDIR /opt/expl
 
-RUN --mount=type=cache,target=/go/pkg go install
+RUN --mount=type=cache,target=/go/pkg --mount=type=cache,target=/root/.cache/go-build go install
 
 FROM alpine:3.16
 
