@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/ed25519"
 	"crypto/rand"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
@@ -25,11 +24,12 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	})
 
-	jwtPubKey, jwtPrivKey, err := ed25519.GenerateKey(rand.Reader)
+	jwtKey := make([]byte, 256/8)
+	_, err := rand.Read(jwtKey)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	jwtGenerator, jwtValidator := security.NewJwtHandlers(jwt.SigningMethodEdDSA, jwtPrivKey, jwtPubKey)
+	jwtGenerator, jwtValidator := security.NewJwtHandlers(jwt.SigningMethodHS256, jwtKey, jwtKey)
 
 	edb, err := expldb.Init(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
