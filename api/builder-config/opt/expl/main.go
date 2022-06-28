@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -22,10 +25,11 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	})
 
-	jwtGenerate, jwtValidate, err := security.NewJwtHandlers()
+	jwtPubKey, jwtPrivKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	jwtGenerator, jwtValidator := security.NewJwtHandlers(jwt.SigningMethodEdDSA, jwtPrivKey, jwtPubKey)
 
 	edb, err := expldb.Init(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
@@ -46,12 +50,12 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", wrap(webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD"))))
-	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/", jwtGenerate)))
+	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/", jwtGenerator)))
 	r.Handle("/api/del", wrap(webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL"))))
-	r.Handle("/api/find", wrap(webhook.NewFindHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_FIND"), "/find/", jwtGenerate)))
+	r.Handle("/api/find", wrap(webhook.NewFindHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_FIND"), "/find/", jwtGenerator)))
 	r.Handle("/api/top", wrap(webhook.NewTopHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_TOP"))))
-	r.Handle("/expl/{jwt:.*}", wrap(web.NewExplHandler(edb, jwtValidate)))
-	r.Handle("/find/{jwt:.*}", wrap(web.NewFindHandler(edb, jwtValidate)))
+	r.Handle("/expl/{jwt:.*}", wrap(web.NewExplHandler(edb, jwtValidator)))
+	r.Handle("/find/{jwt:.*}", wrap(web.NewFindHandler(edb, jwtValidator)))
 
 	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", r)

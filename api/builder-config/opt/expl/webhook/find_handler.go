@@ -12,12 +12,12 @@ import (
 	"strings"
 )
 
-func NewFindHandler(edb *expldb.ExplDB, token string, webFindPathPrefix string, jwtGenerate security.JwtGenerate) http.Handler {
+func NewFindHandler(edb *expldb.ExplDB, token string, webFindPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
 	return NewHandlerAdapter(&findHandler{
 		edb:               edb,
 		token:             token,
 		webFindPathPrefix: webFindPathPrefix,
-		jwtGenerate:       jwtGenerate,
+		jwtGenerator:      jwtGenerator,
 	})
 }
 
@@ -25,7 +25,7 @@ type findHandler struct {
 	edb               *expldb.ExplDB
 	token             string
 	webFindPathPrefix string
-	jwtGenerate       security.JwtGenerate
+	jwtGenerator      security.JwtGenerator
 }
 
 func (f *findHandler) Token() string {
@@ -93,7 +93,7 @@ func (f *findHandler) getWebFindUrl(r *http.Request, rex string) (*url.URL, erro
 			scheme = "https"
 		}
 	}
-	jwtStr, err := f.jwtGenerate(rex, settings.FindTokenValidity)
+	jwtStr, err := f.jwtGenerator.Generate(rex, settings.FindTokenValidity)
 	if err != nil {
 		return nil, err
 	}

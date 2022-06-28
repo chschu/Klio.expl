@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string, jwtGenerate security.JwtGenerate) http.Handler {
+func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
 	return NewHandlerAdapter(&explHandler{
 		edb:               edb,
 		token:             token,
 		webExplPathPrefix: webExplPathPrefix,
-		jwtGenerate:       jwtGenerate,
+		jwtGenerator:      jwtGenerator,
 	})
 }
 
@@ -26,7 +26,7 @@ type explHandler struct {
 	edb               *expldb.ExplDB
 	token             string
 	webExplPathPrefix string
-	jwtGenerate       security.JwtGenerate
+	jwtGenerator      security.JwtGenerator
 }
 
 func (e *explHandler) Token() string {
@@ -103,7 +103,7 @@ func (e *explHandler) getWebExplUrl(r *http.Request, key string) (*url.URL, erro
 			scheme = "https"
 		}
 	}
-	jwtStr, err := e.jwtGenerate(key, settings.ExplTokenValidity)
+	jwtStr, err := e.jwtGenerator.Generate(key, settings.ExplTokenValidity)
 	if err != nil {
 		return nil, err
 	}

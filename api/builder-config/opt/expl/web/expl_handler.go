@@ -11,22 +11,22 @@ import (
 	"net/http"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidate) http.Handler {
+func NewExplHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidator) http.Handler {
 	return &explHandler{
-		edb:         edb,
-		jwtValidate: jwtValidate,
+		edb:          edb,
+		jwtValidator: jwtValidate,
 	}
 }
 
 type explHandler struct {
-	edb         *expldb.ExplDB
-	jwtValidate security.JwtValidate
+	edb          *expldb.ExplDB
+	jwtValidator security.JwtValidator
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	jwtStr := mux.Vars(r)["jwt"]
 
-	key, err := e.jwtValidate(jwtStr)
+	key, err := e.jwtValidator.Validate(jwtStr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		logrus.Infof("failed to validate JWT: %v", err)
