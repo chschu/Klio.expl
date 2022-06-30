@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewDelHandler(edb *expldb.ExplDB, token string) http.Handler {
+func NewDelHandler(edb expldb.Deleter, token string) http.Handler {
 	return NewHandlerAdapter(&delHandler{
 		edb:   edb,
 		token: token,
@@ -17,7 +17,7 @@ func NewDelHandler(edb *expldb.ExplDB, token string) http.Handler {
 }
 
 type delHandler struct {
-	edb   *expldb.ExplDB
+	edb   expldb.Deleter
 	token string
 }
 
@@ -41,7 +41,7 @@ func (d *delHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		return syntaxResponse, nil
 	}
 
-	entries, err := d.edb.Del(r.Context(), key, types.IndexSpecSingle(index))
+	entries, err := d.edb.Delete(r.Context(), key, types.IndexSpecSingle(index))
 	if err != nil {
 		return nil, err
 	}

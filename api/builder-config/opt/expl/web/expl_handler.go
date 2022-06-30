@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidator) http.Handler {
+func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator) http.Handler {
 	return &explHandler{
 		edb:          edb,
 		jwtValidator: jwtValidate,
@@ -19,7 +19,7 @@ func NewExplHandler(edb *expldb.ExplDB, jwtValidate security.JwtValidator) http.
 }
 
 type explHandler struct {
-	edb          *expldb.ExplDB
+	edb          expldb.Explainer
 	jwtValidator security.JwtValidator
 }
 
@@ -33,7 +33,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := e.edb.Expl(r.Context(), key, types.IndexSpecAll())
+	entries, err := e.edb.Explain(r.Context(), key, types.IndexSpecAll())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error accessing entries: %v", err)

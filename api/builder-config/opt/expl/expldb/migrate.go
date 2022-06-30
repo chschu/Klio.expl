@@ -10,36 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"klio/expl/util"
-	"time"
 )
-
-func Init(databaseURL string) (*ExplDB, error) {
-	db, err := sqlx.Open("postgres", databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	waitUntilAvailable(db)
-	err = applyMigrations(db)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ExplDB{
-		db: db,
-	}, nil
-}
-
-func (e *ExplDB) Close() error {
-	return e.db.Close()
-}
-
-func waitUntilAvailable(db *sqlx.DB) {
-	for db.Ping() != nil {
-		logrus.Info("Waiting for database...")
-		time.Sleep(time.Second)
-	}
-}
 
 //go:embed migrations/*.sql
 var fs embed.FS

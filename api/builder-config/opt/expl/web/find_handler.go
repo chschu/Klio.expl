@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func NewFindHandler(edb *expldb.ExplDB, jwtValidator security.JwtValidator) http.Handler {
+func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator) http.Handler {
 	return &findHandler{
 		edb:          edb,
 		jwtValidator: jwtValidator,
@@ -18,7 +18,7 @@ func NewFindHandler(edb *expldb.ExplDB, jwtValidator security.JwtValidator) http
 }
 
 type findHandler struct {
-	edb          *expldb.ExplDB
+	edb          expldb.Finder
 	jwtValidator security.JwtValidator
 }
 

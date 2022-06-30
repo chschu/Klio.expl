@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewTopHandler(edb *expldb.ExplDB, token string) http.Handler {
+func NewTopHandler(edb expldb.Topper, token string) http.Handler {
 	return NewHandlerAdapter(&topHandler{
 		edb:   edb,
 		token: token,
@@ -17,7 +17,7 @@ func NewTopHandler(edb *expldb.ExplDB, token string) http.Handler {
 }
 
 type topHandler struct {
-	edb   *expldb.ExplDB
+	edb   expldb.Topper
 	token string
 }
 

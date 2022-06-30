@@ -10,7 +10,7 @@ import (
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb *expldb.ExplDB, token string) http.Handler {
+func NewAddHandler(edb expldb.Adder, token string) http.Handler {
 	return NewHandlerAdapter(&addHandler{
 		edb:   edb,
 		token: token,
@@ -18,7 +18,7 @@ func NewAddHandler(edb *expldb.ExplDB, token string) http.Handler {
 }
 
 type addHandler struct {
-	edb   *expldb.ExplDB
+	edb   expldb.Adder
 	token string
 }
 

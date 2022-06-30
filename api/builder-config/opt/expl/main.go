@@ -31,11 +31,11 @@ func main() {
 	}
 	jwtGenerator, jwtValidator := security.NewJwtHandlers(jwt.SigningMethodHS256, jwtKey, jwtKey)
 
-	edb, err := expldb.Init(mustLookupEnv("CONNECT_STRING"))
+	edb, err := expldb.NewExplDB(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	defer func(e *expldb.ExplDB) {
+	defer func(e expldb.ExplDB) {
 		err := e.Close()
 		if err != nil {
 			logrus.Fatal(err)

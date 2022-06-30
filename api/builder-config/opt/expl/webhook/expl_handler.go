@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
+func NewExplHandler(edb expldb.Explainer, token string, webExplPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
 	return NewHandlerAdapter(&explHandler{
 		edb:               edb,
 		token:             token,
@@ -23,7 +23,7 @@ func NewExplHandler(edb *expldb.ExplDB, token string, webExplPathPrefix string, 
 }
 
 type explHandler struct {
-	edb               *expldb.ExplDB
+	edb               expldb.Explainer
 	token             string
 	webExplPathPrefix string
 	jwtGenerator      security.JwtGenerator
@@ -55,7 +55,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		}
 	}
 
-	entries, total, err := e.edb.ExplWithLimit(r.Context(), key, indexSpec, settings.MaxExplCount)
+	entries, total, err := e.edb.ExplainWithLimit(r.Context(), key, indexSpec, settings.MaxExplCount)
 	if err != nil {
 		return nil, err
 	}
