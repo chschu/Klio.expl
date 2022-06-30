@@ -11,18 +11,12 @@ import (
 
 func NewDelHandler(edb expldb.Deleter, token string) http.Handler {
 	return NewHandlerAdapter(&delHandler{
-		edb:   edb,
-		token: token,
-	})
+		edb: edb,
+	}, token)
 }
 
 type delHandler struct {
-	edb   expldb.Deleter
-	token string
-}
-
-func (d *delHandler) Token() string {
-	return d.token
+	edb expldb.Deleter
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request) (*Response, error) {

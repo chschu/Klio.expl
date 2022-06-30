@@ -11,18 +11,12 @@ import (
 
 func NewTopHandler(edb expldb.Topper, token string) http.Handler {
 	return NewHandlerAdapter(&topHandler{
-		edb:   edb,
-		token: token,
-	})
+		edb: edb,
+	}, token)
 }
 
 type topHandler struct {
-	edb   expldb.Topper
-	token string
-}
-
-func (t *topHandler) Token() string {
-	return t.token
+	edb expldb.Topper
 }
 
 func (e *topHandler) Handle(in *Request, r *http.Request) (*Response, error) {

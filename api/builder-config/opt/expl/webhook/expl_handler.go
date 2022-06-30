@@ -16,21 +16,15 @@ import (
 func NewExplHandler(edb expldb.Explainer, token string, webExplPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
 	return NewHandlerAdapter(&explHandler{
 		edb:               edb,
-		token:             token,
 		webExplPathPrefix: webExplPathPrefix,
 		jwtGenerator:      jwtGenerator,
-	})
+	}, token)
 }
 
 type explHandler struct {
 	edb               expldb.Explainer
-	token             string
 	webExplPathPrefix string
 	jwtGenerator      security.JwtGenerator
-}
-
-func (e *explHandler) Token() string {
-	return e.token
 }
 
 func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {

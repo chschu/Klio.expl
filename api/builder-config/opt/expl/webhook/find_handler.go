@@ -15,21 +15,15 @@ import (
 func NewFindHandler(edb expldb.Finder, token string, webFindPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
 	return NewHandlerAdapter(&findHandler{
 		edb:               edb,
-		token:             token,
 		webFindPathPrefix: webFindPathPrefix,
 		jwtGenerator:      jwtGenerator,
-	})
+	}, token)
 }
 
 type findHandler struct {
 	edb               expldb.Finder
-	token             string
 	webFindPathPrefix string
 	jwtGenerator      security.JwtGenerator
-}
-
-func (f *findHandler) Token() string {
-	return f.token
 }
 
 func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {

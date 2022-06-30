@@ -8,17 +8,18 @@ import (
 
 type Handler interface {
 	Handle(in *Request, r *http.Request) (*Response, error)
-	Token() string
 }
 
-func NewHandlerAdapter(handler Handler) http.Handler {
+func NewHandlerAdapter(handler Handler, token string) http.Handler {
 	return &handlerAdapter{
 		handler: handler,
+		token:   token,
 	}
 }
 
 type handlerAdapter struct {
 	handler Handler
+	token   string
 }
 
 func (a *handlerAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,7 @@ func (a *handlerAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if in.Token != a.handler.Token() {
+	if in.Token != a.token {
 		w.WriteHeader(http.StatusUnauthorized)
 		logrus.Errorf("invalid token: %s", in.Token)
 		return

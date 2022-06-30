@@ -12,18 +12,12 @@ import (
 
 func NewAddHandler(edb expldb.Adder, token string) http.Handler {
 	return NewHandlerAdapter(&addHandler{
-		edb:   edb,
-		token: token,
-	})
+		edb: edb,
+	}, token)
 }
 
 type addHandler struct {
-	edb   expldb.Adder
-	token string
-}
-
-func (a *addHandler) Token() string {
-	return a.token
+	edb expldb.Adder
 }
 
 func (a *addHandler) Handle(in *Request, r *http.Request) (*Response, error) {
