@@ -10,14 +10,20 @@ import (
 	"time"
 )
 
-func NewDelHandler(edb expldb.Deleter) Handler {
+func NewDelHandler(edb expldb.Deleter, settings DelHandlerSettings) Handler {
 	return &delHandler{
-		edb: edb,
+		edb:      edb,
+		settings: settings,
 	}
 }
 
+type DelHandlerSettings interface {
+	types.EntrySettings
+}
+
 type delHandler struct {
-	edb expldb.Deleter
+	edb      expldb.Deleter
+	settings DelHandlerSettings
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -54,7 +60,7 @@ func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String())
+			sb.WriteString(entry.String(d.settings))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")

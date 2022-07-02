@@ -3,21 +3,26 @@ package webhook
 import (
 	"fmt"
 	"klio/expl/expldb"
-	"klio/expl/settings"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func NewTopHandler(edb expldb.Topper) Handler {
+func NewTopHandler(edb expldb.Topper, settings TopHandlerSettings) Handler {
 	return &topHandler{
-		edb: edb,
+		edb:      edb,
+		settings: settings,
 	}
 }
 
+type TopHandlerSettings interface {
+	MaxTopCount() int
+}
+
 type topHandler struct {
-	edb expldb.Topper
+	edb      expldb.Topper
+	settings TopHandlerSettings
 }
 
 func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -26,7 +31,7 @@ func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 		return NewResponse(fmt.Sprintf("Syntax: %s", in.TriggerWord)), nil
 	}
 
-	entries, err := e.edb.Top(r.Context(), settings.TopExplCount)
+	entries, err := e.edb.Top(r.Context(), e.settings.MaxTopCount())
 	if err != nil {
 		return nil, err
 	}

@@ -11,16 +11,22 @@ import (
 	"net/http"
 )
 
-func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator) http.Handler {
+func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, settings ExplHandlerSettings) http.Handler {
 	return &explHandler{
 		edb:          edb,
 		jwtValidator: jwtValidate,
+		settings:     settings,
 	}
+}
+
+type ExplHandlerSettings interface {
+	types.EntrySettings
 }
 
 type explHandler struct {
 	edb          expldb.Explainer
 	jwtValidator security.JwtValidator
+	settings     ExplHandlerSettings
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +58,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
 		}
 		for _, entry := range entries {
-			buf.WriteString(entry.String())
+			buf.WriteString(entry.String(e.settings))
 			buf.WriteRune('\n')
 		}
 	}

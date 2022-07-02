@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/settings"
+	"klio/expl/types"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,18 +13,26 @@ import (
 	"time"
 )
 
-func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
+func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, settings FindHandlerSettings) Handler {
 	return &findHandler{
 		edb:               edb,
 		webFindPathPrefix: webFindPathPrefix,
 		jwtGenerator:      jwtGenerator,
+		settings:          settings,
 	}
+}
+
+type FindHandlerSettings interface {
+	types.EntrySettings
+	MaxFindCount() int
+	FindTokenValidity() time.Duration
 }
 
 type findHandler struct {
 	edb               expldb.Finder
 	webFindPathPrefix string
 	jwtGenerator      security.JwtGenerator
+	settings          FindHandlerSettings
 }
 
 func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -37,7 +45,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 	}
 	rex := match[sep.SubexpIndex("Regex")]
 
-	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, settings.MaxFindCount)
+	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, f.settings.MaxFindCount())
 	if err == expldb.ErrFindRegexInvalid {
 		return syntaxResponse, nil
 	}
@@ -70,7 +78,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String())
+			sb.WriteString(entry.String(f.settings))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")
@@ -88,7 +96,7 @@ func (f *findHandler) getWebFindUrl(r *http.Request, rex string, now time.Time) 
 			scheme = "https"
 		}
 	}
-	jwtStr, err := f.jwtGenerator.Generate(rex, now.Add(settings.FindTokenValidity))
+	jwtStr, err := f.jwtGenerator.Generate(rex, now.Add(f.settings.FindTokenValidity()))
 	if err != nil {
 		return nil, err
 	}

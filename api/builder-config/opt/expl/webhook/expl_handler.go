@@ -5,7 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/settings"
 	"klio/expl/types"
 	"net/http"
 	"net/url"
@@ -14,18 +13,26 @@ import (
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, settings ExplHandlerSettings) Handler {
 	return &explHandler{
 		edb:               edb,
 		webExplPathPrefix: webExplPathPrefix,
 		jwtGenerator:      jwtGenerator,
+		settings:          settings,
 	}
+}
+
+type ExplHandlerSettings interface {
+	types.EntrySettings
+	MaxExplCount() int
+	ExplTokenValidity() time.Duration
 }
 
 type explHandler struct {
 	edb               expldb.Explainer
 	webExplPathPrefix string
 	jwtGenerator      security.JwtGenerator
+	settings          ExplHandlerSettings
 }
 
 func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -50,7 +57,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 	}
 
-	entries, total, err := e.edb.ExplainWithLimit(r.Context(), key, indexSpec, settings.MaxExplCount)
+	entries, total, err := e.edb.ExplainWithLimit(r.Context(), key, indexSpec, e.settings.MaxExplCount())
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +87,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String())
+			sb.WriteString(entry.String(e.settings))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")
@@ -98,7 +105,7 @@ func (e *explHandler) getWebExplUrl(r *http.Request, key string, now time.Time) 
 			scheme = "https"
 		}
 	}
-	jwtStr, err := e.jwtGenerator.Generate(key, now.Add(settings.ExplTokenValidity))
+	jwtStr, err := e.jwtGenerator.Generate(key, now.Add(e.settings.ExplTokenValidity()))
 	if err != nil {
 		return nil, err
 	}
