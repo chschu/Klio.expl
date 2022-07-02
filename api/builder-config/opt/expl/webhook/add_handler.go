@@ -3,29 +3,30 @@ package webhook
 import (
 	"fmt"
 	"klio/expl/expldb"
-	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 	"regexp"
 	"time"
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb expldb.Adder, settings AddHandlerSettings) Handler {
+func NewAddHandler(edb expldb.Adder, entryStringer util.EntryStringer, settings AddHandlerSettings) Handler {
 	return &addHandler{
-		edb:      edb,
-		settings: settings,
+		edb:           edb,
+		entryStringer: entryStringer,
+		settings:      settings,
 	}
 }
 
 type AddHandlerSettings interface {
-	types.EntrySettings
 	MaxUTF16LengthForKey() int
 	MaxUTF16LengthForValue() int
 }
 
 type addHandler struct {
-	edb      expldb.Adder
-	settings AddHandlerSettings
+	edb           expldb.Adder
+	entryStringer util.EntryStringer
+	settings      AddHandlerSettings
 }
 
 func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -50,5 +51,5 @@ func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Respo
 		return nil, err
 	}
 
-	return NewResponse(fmt.Sprintf("Ich habe den folgenden neuen Eintrag hinzugefügt:\n```\n%s\n```", entry.String(a.settings))), nil
+	return NewResponse(fmt.Sprintf("Ich habe den folgenden neuen Eintrag hinzugefügt:\n```\n%s\n```", a.entryStringer.String(entry))), nil
 }

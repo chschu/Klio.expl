@@ -6,6 +6,7 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,17 +14,17 @@ import (
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, settings ExplHandlerSettings) Handler {
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer util.EntryStringer, settings ExplHandlerSettings) Handler {
 	return &explHandler{
 		edb:               edb,
 		webExplPathPrefix: webExplPathPrefix,
 		jwtGenerator:      jwtGenerator,
+		entryStringer:     entryStringer,
 		settings:          settings,
 	}
 }
 
 type ExplHandlerSettings interface {
-	types.EntrySettings
 	MaxExplCount() int
 	ExplTokenValidity() time.Duration
 }
@@ -32,6 +33,7 @@ type explHandler struct {
 	edb               expldb.Explainer
 	webExplPathPrefix string
 	jwtGenerator      security.JwtGenerator
+	entryStringer     util.EntryStringer
 	settings          ExplHandlerSettings
 }
 
@@ -87,7 +89,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String(e.settings))
+			sb.WriteString(e.entryStringer.String(&entry))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")

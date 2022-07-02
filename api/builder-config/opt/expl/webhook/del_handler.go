@@ -4,26 +4,23 @@ import (
 	"fmt"
 	"klio/expl/expldb"
 	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func NewDelHandler(edb expldb.Deleter, settings DelHandlerSettings) Handler {
+func NewDelHandler(edb expldb.Deleter, entryStringer util.EntryStringer) Handler {
 	return &delHandler{
-		edb:      edb,
-		settings: settings,
+		edb:           edb,
+		entryStringer: entryStringer,
 	}
 }
 
-type DelHandlerSettings interface {
-	types.EntrySettings
-}
-
 type delHandler struct {
-	edb      expldb.Deleter
-	settings DelHandlerSettings
+	edb           expldb.Deleter
+	entryStringer util.EntryStringer
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -60,7 +57,7 @@ func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String(d.settings))
+			sb.WriteString(d.entryStringer.String(&entry))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")

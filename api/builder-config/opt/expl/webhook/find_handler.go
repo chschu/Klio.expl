@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,17 +13,17 @@ import (
 	"time"
 )
 
-func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, settings FindHandlerSettings) Handler {
+func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer util.EntryStringer, settings FindHandlerSettings) Handler {
 	return &findHandler{
 		edb:               edb,
 		webFindPathPrefix: webFindPathPrefix,
 		jwtGenerator:      jwtGenerator,
+		entryStringer:     entryStringer,
 		settings:          settings,
 	}
 }
 
 type FindHandlerSettings interface {
-	types.EntrySettings
 	MaxFindCount() int
 	FindTokenValidity() time.Duration
 }
@@ -32,6 +32,7 @@ type findHandler struct {
 	edb               expldb.Finder
 	webFindPathPrefix string
 	jwtGenerator      security.JwtGenerator
+	entryStringer     util.EntryStringer
 	settings          FindHandlerSettings
 }
 
@@ -78,7 +79,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 		sb.WriteString("```\n")
 		for _, entry := range entries {
-			sb.WriteString(entry.String(f.settings))
+			sb.WriteString(f.entryStringer.String(&entry))
 			sb.WriteRune('\n')
 		}
 		sb.WriteString("```")

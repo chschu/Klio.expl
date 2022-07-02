@@ -11,6 +11,7 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/settings"
+	"klio/expl/util"
 	"klio/expl/web"
 	"klio/expl/webhook"
 	"net/http"
@@ -47,14 +48,16 @@ func main() {
 	webChain := compose(timeoutAdapter(settings.Instance.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
 	webhookChain := compose(webChain, webhook.ToHttpHandler)
 
+	entryStringer := util.NewEntryStringer(settings.Instance)
+
 	r := mux.NewRouter()
-	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, settings.Instance)))
-	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", jwtGenerator, settings.Instance)))
-	r.Handle("/api/del", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_DEL"))(webhook.NewDelHandler(edb, settings.Instance)))
-	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator, settings.Instance)))
+	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, entryStringer, settings.Instance)))
+	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", jwtGenerator, entryStringer, settings.Instance)))
+	r.Handle("/api/del", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_DEL"))(webhook.NewDelHandler(edb, entryStringer)))
+	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator, entryStringer, settings.Instance)))
 	r.Handle("/api/top", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_TOP"))(webhook.NewTopHandler(edb, settings.Instance)))
-	r.Handle("/expl/{jwt:.*}", webChain(web.NewExplHandler(edb, jwtValidator, settings.Instance)))
-	r.Handle("/find/{jwt:.*}", webChain(web.NewFindHandler(edb, jwtValidator, settings.Instance)))
+	r.Handle("/expl/{jwt:.*}", webChain(web.NewExplHandler(edb, jwtValidator, entryStringer)))
+	r.Handle("/find/{jwt:.*}", webChain(web.NewFindHandler(edb, jwtValidator, entryStringer)))
 
 	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", r)

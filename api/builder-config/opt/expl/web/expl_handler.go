@@ -8,25 +8,22 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 )
 
-func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, settings ExplHandlerSettings) http.Handler {
+func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, entryStringer util.EntryStringer) http.Handler {
 	return &explHandler{
-		edb:          edb,
-		jwtValidator: jwtValidate,
-		settings:     settings,
+		edb:           edb,
+		jwtValidator:  jwtValidate,
+		entryStringer: entryStringer,
 	}
 }
 
-type ExplHandlerSettings interface {
-	types.EntrySettings
-}
-
 type explHandler struct {
-	edb          expldb.Explainer
-	jwtValidator security.JwtValidator
-	settings     ExplHandlerSettings
+	edb           expldb.Explainer
+	jwtValidator  security.JwtValidator
+	entryStringer util.EntryStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +55,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
 		}
 		for _, entry := range entries {
-			buf.WriteString(entry.String(e.settings))
+			buf.WriteString(e.entryStringer.String(&entry))
 			buf.WriteRune('\n')
 		}
 	}

@@ -7,26 +7,22 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/types"
+	"klio/expl/util"
 	"net/http"
 )
 
-func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, settings FindHandlerSettings) http.Handler {
+func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entryStringer util.EntryStringer) http.Handler {
 	return &findHandler{
-		edb:          edb,
-		jwtValidator: jwtValidator,
-		settings:     settings,
+		edb:           edb,
+		jwtValidator:  jwtValidator,
+		entryStringer: entryStringer,
 	}
 }
 
-type FindHandlerSettings interface {
-	types.EntrySettings
-}
-
 type findHandler struct {
-	edb          expldb.Finder
-	jwtValidator security.JwtValidator
-	settings     FindHandlerSettings
+	edb           expldb.Finder
+	jwtValidator  security.JwtValidator
+	entryStringer util.EntryStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +54,7 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
 		}
 		for _, entry := range entries {
-			buf.WriteString(entry.String(f.settings))
+			buf.WriteString(f.entryStringer.String(&entry))
 			buf.WriteRune('\n')
 		}
 	}
