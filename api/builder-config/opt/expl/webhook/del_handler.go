@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-func NewDelHandler(edb expldb.Deleter, token string) http.Handler {
-	return NewHandlerAdapter(&delHandler{
+func NewDelHandler(edb expldb.Deleter) Handler {
+	return &delHandler{
 		edb: edb,
-	}, token)
+	}
 }
 
 type delHandler struct {

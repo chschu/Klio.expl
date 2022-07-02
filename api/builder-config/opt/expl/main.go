@@ -43,19 +43,18 @@ func main() {
 	}(edb)
 	logrus.Info("Database successfully initialized")
 
-	wrap := timeoutHandlerTransform(settings.HandlerTimeout)
-	if mustLookupUseProxyHeaders() {
-		wrap = wrap.compose(handlers.ProxyHeaders)
-	}
+	useProxyHeaders := mustParseBool(mustLookupEnv("USE_PROXY_HEADERS"))
+	webChain := compose(timeoutAdapter(settings.HandlerTimeout), proxyHeaderAdapter(useProxyHeaders))
+	webhookChain := compose(webChain, webhook.ToHttpHandler)
 
 	r := mux.NewRouter()
-	r.Handle("/api/add", wrap(webhook.NewAddHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_ADD"))))
-	r.Handle("/api/expl", wrap(webhook.NewExplHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_EXPL"), "/expl/", jwtGenerator)))
-	r.Handle("/api/del", wrap(webhook.NewDelHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_DEL"))))
-	r.Handle("/api/find", wrap(webhook.NewFindHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_FIND"), "/find/", jwtGenerator)))
-	r.Handle("/api/top", wrap(webhook.NewTopHandler(edb, mustLookupEnv("WEBHOOK_TOKEN_TOP"))))
-	r.Handle("/expl/{jwt:.*}", wrap(web.NewExplHandler(edb, jwtValidator)))
-	r.Handle("/find/{jwt:.*}", wrap(web.NewFindHandler(edb, jwtValidator)))
+	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb)))
+	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", jwtGenerator)))
+	r.Handle("/api/del", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_DEL"))(webhook.NewDelHandler(edb)))
+	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator)))
+	r.Handle("/api/top", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_TOP"))(webhook.NewTopHandler(edb)))
+	r.Handle("/expl/{jwt:.*}", webChain(web.NewExplHandler(edb, jwtValidator)))
+	r.Handle("/find/{jwt:.*}", webChain(web.NewFindHandler(edb, jwtValidator)))
 
 	logrus.Info("Listening for HTTP connections...")
 	err = http.ListenAndServe(":8000", r)
@@ -66,15 +65,20 @@ func main() {
 	logrus.Info("Shutting down")
 }
 
-type handlerTransform func(http.Handler) http.Handler
-
-func (outer handlerTransform) compose(inner handlerTransform) handlerTransform {
-	return func(h http.Handler) http.Handler {
-		return outer(inner(h))
+func proxyHeaderAdapter(useProxyHeaders bool) func(http.Handler) http.Handler {
+	if useProxyHeaders {
+		return handlers.ProxyHeaders
+	}
+	return func(handler http.Handler) http.Handler {
+		return handler
 	}
 }
 
-func timeoutHandlerTransform(timeout time.Duration) handlerTransform {
+func requiredTokenEnvAdapter(envKey string) func(webhook.Handler) webhook.Handler {
+	return webhook.RequiredTokenAdapter(mustLookupEnv(envKey))
+}
+
+func timeoutAdapter(timeout time.Duration) func(h http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
@@ -84,19 +88,24 @@ func timeoutHandlerTransform(timeout time.Duration) handlerTransform {
 	}
 }
 
-func mustLookupUseProxyHeaders() bool {
-	envStr := mustLookupEnv("USE_PROXY_HEADERS")
-	result, err := strconv.ParseBool(envStr)
-	if err != nil {
-		logrus.Fatalf("cannot convert value: %v", err)
-	}
-	return result
-}
-
 func mustLookupEnv(key string) string {
 	value, ok := os.LookupEnv(key)
 	if !ok {
 		logrus.Fatalf("environment variable not set: %v", key)
 	}
 	return value
+}
+
+func mustParseBool(s string) bool {
+	result, err := strconv.ParseBool(s)
+	if err != nil {
+		logrus.Fatalf("cannot convert to bool: %s", s)
+	}
+	return result
+}
+
+func compose[A any, B any, C any](outer func(B) C, inner func(A) B) func(A) C {
+	return func(a A) C {
+		return outer(inner(a))
+	}
 }

@@ -12,12 +12,12 @@ import (
 	"strings"
 )
 
-func NewFindHandler(edb expldb.Finder, token string, webFindPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
-	return NewHandlerAdapter(&findHandler{
+func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
+	return &findHandler{
 		edb:               edb,
 		webFindPathPrefix: webFindPathPrefix,
 		jwtGenerator:      jwtGenerator,
-	}, token)
+	}
 }
 
 type findHandler struct {

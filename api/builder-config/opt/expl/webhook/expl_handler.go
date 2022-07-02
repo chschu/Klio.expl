@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-func NewExplHandler(edb expldb.Explainer, token string, webExplPathPrefix string, jwtGenerator security.JwtGenerator) http.Handler {
-	return NewHandlerAdapter(&explHandler{
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
+	return &explHandler{
 		edb:               edb,
 		webExplPathPrefix: webExplPathPrefix,
 		jwtGenerator:      jwtGenerator,
-	}, token)
+	}
 }
 
 type explHandler struct {

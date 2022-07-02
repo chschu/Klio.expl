@@ -10,10 +10,10 @@ import (
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb expldb.Adder, token string) http.Handler {
-	return NewHandlerAdapter(&addHandler{
+func NewAddHandler(edb expldb.Adder) Handler {
+	return &addHandler{
 		edb: edb,
-	}, token)
+	}
 }
 
 type addHandler struct {
