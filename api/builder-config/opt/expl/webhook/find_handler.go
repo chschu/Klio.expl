@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/util"
+	"klio/expl/types"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer util.EntryStringer, settings FindHandlerSettings) Handler {
+func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings FindHandlerSettings) Handler {
 	return &findHandler{
 		edb:               edb,
 		webFindPathPrefix: webFindPathPrefix,
@@ -32,7 +32,7 @@ type findHandler struct {
 	edb               expldb.Finder
 	webFindPathPrefix string
 	jwtGenerator      security.JwtGenerator
-	entryStringer     util.EntryStringer
+	entryStringer     types.EntryStringer
 	settings          FindHandlerSettings
 }
 

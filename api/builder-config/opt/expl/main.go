@@ -11,7 +11,7 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/settings"
-	"klio/expl/util"
+	"klio/expl/types"
 	"klio/expl/web"
 	"klio/expl/webhook"
 	"net/http"
@@ -48,7 +48,7 @@ func main() {
 	webChain := compose(timeoutAdapter(settings.Instance.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
 	webhookChain := compose(webChain, webhook.ToHttpHandler)
 
-	entryStringer := util.NewEntryStringer(settings.Instance)
+	entryStringer := types.NewEntryStringer(settings.Instance)
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, entryStringer, settings.Instance)))

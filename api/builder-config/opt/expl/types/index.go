@@ -3,31 +3,17 @@ package types
 import "fmt"
 
 type Index interface {
+	fmt.Stringer
 	Value() uint
-	Descending() bool // true iff newer entries have smaller index values
-	DatabaseColumn() string
+	SqlCondition(cmp IndexComparison) (string, []any)
 }
 
-type IndexRange struct {
-	From Index
-	To   Index
-}
+type IndexComparison string
 
-type IndexSpec []IndexRange
-
-func IndexSpecAll() IndexSpec {
-	return []IndexRange{{
-		From: HeadIndex(1),
-		To:   TailIndex(1),
-	}}
-}
-
-func IndexSpecSingle(index Index) IndexSpec {
-	return []IndexRange{{
-		From: index,
-		To:   index,
-	}}
-}
+const (
+	IndexFrom IndexComparison = ">="
+	IndexTo   IndexComparison = "<="
+)
 
 type HeadIndex uint
 
@@ -35,12 +21,8 @@ func (i HeadIndex) Value() uint {
 	return uint(i)
 }
 
-func (i HeadIndex) Descending() bool {
-	return false
-}
-
-func (i HeadIndex) DatabaseColumn() string {
-	return "head_index"
+func (i HeadIndex) SqlCondition(cmp IndexComparison) (string, []any) {
+	return "head_index " + string(cmp) + " ?", []any{uint(i)}
 }
 
 func (i HeadIndex) String() string {
@@ -53,12 +35,8 @@ func (i TailIndex) Value() uint {
 	return uint(i)
 }
 
-func (i TailIndex) Descending() bool {
-	return true
-}
-
-func (i TailIndex) DatabaseColumn() string {
-	return "tail_index"
+func (i TailIndex) SqlCondition(cmp IndexComparison) (string, []any) {
+	return "0-tail_index " + string(cmp) + " 0-?", []any{uint(i)}
 }
 
 func (i TailIndex) String() string {
@@ -71,12 +49,8 @@ func (i PermanentIndex) Value() uint {
 	return uint(i)
 }
 
-func (i PermanentIndex) Descending() bool {
-	return false
-}
-
-func (i PermanentIndex) DatabaseColumn() string {
-	return "permanent_index"
+func (i PermanentIndex) SqlCondition(cmp IndexComparison) (string, []any) {
+	return "permanent_index " + string(cmp) + " ?", []any{uint(i)}
 }
 
 func (i PermanentIndex) String() string {

@@ -1,15 +1,14 @@
-package util
+package types
 
 import (
 	"fmt"
-	"klio/expl/types"
 	"regexp"
 	"strings"
 	"time"
 )
 
 type EntryStringer interface {
-	String(*types.Entry) string
+	String(*Entry) string
 }
 
 type EntryStringerSettings interface {
@@ -27,7 +26,7 @@ type entryStringer struct {
 	settings EntryStringerSettings
 }
 
-func (s *entryStringer) String(e *types.Entry) string {
+func (s *entryStringer) String(e *Entry) string {
 	text := regexp.MustCompile("[[:space:]]").ReplaceAllString(e.Value, " ")
 
 	var metadata []string

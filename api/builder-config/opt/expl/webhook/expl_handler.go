@@ -6,7 +6,6 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/types"
-	"klio/expl/util"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,7 +13,7 @@ import (
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer util.EntryStringer, settings ExplHandlerSettings) Handler {
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings ExplHandlerSettings) Handler {
 	return &explHandler{
 		edb:               edb,
 		webExplPathPrefix: webExplPathPrefix,
@@ -33,7 +32,7 @@ type explHandler struct {
 	edb               expldb.Explainer
 	webExplPathPrefix string
 	jwtGenerator      security.JwtGenerator
-	entryStringer     util.EntryStringer
+	entryStringer     types.EntryStringer
 	settings          ExplHandlerSettings
 }
 

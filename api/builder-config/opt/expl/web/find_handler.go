@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
 	"klio/expl/security"
-	"klio/expl/util"
+	"klio/expl/types"
 	"net/http"
 )
 
-func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entryStringer util.EntryStringer) http.Handler {
+func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entryStringer types.EntryStringer) http.Handler {
 	return &findHandler{
 		edb:           edb,
 		jwtValidator:  jwtValidator,
@@ -22,7 +22,7 @@ func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entry
 type findHandler struct {
 	edb           expldb.Finder
 	jwtValidator  security.JwtValidator
-	entryStringer util.EntryStringer
+	entryStringer types.EntryStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

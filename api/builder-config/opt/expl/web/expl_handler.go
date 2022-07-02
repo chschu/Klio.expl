@@ -8,11 +8,10 @@ import (
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/types"
-	"klio/expl/util"
 	"net/http"
 )
 
-func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, entryStringer util.EntryStringer) http.Handler {
+func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, entryStringer types.EntryStringer) http.Handler {
 	return &explHandler{
 		edb:           edb,
 		jwtValidator:  jwtValidate,
@@ -23,7 +22,7 @@ func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, ent
 type explHandler struct {
 	edb           expldb.Explainer
 	jwtValidator  security.JwtValidator
-	entryStringer util.EntryStringer
+	entryStringer types.EntryStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

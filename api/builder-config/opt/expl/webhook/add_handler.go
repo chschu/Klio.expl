@@ -3,14 +3,14 @@ package webhook
 import (
 	"fmt"
 	"klio/expl/expldb"
-	"klio/expl/util"
+	"klio/expl/types"
 	"net/http"
 	"regexp"
 	"time"
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb expldb.Adder, entryStringer util.EntryStringer, settings AddHandlerSettings) Handler {
+func NewAddHandler(edb expldb.Adder, entryStringer types.EntryStringer, settings AddHandlerSettings) Handler {
 	return &addHandler{
 		edb:           edb,
 		entryStringer: entryStringer,
@@ -25,7 +25,7 @@ type AddHandlerSettings interface {
 
 type addHandler struct {
 	edb           expldb.Adder
-	entryStringer util.EntryStringer
+	entryStringer types.EntryStringer
 	settings      AddHandlerSettings
 }
 

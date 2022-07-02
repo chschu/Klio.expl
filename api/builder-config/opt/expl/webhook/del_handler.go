@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"klio/expl/expldb"
 	"klio/expl/types"
-	"klio/expl/util"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func NewDelHandler(edb expldb.Deleter, entryStringer util.EntryStringer) Handler {
+func NewDelHandler(edb expldb.Deleter, entryStringer types.EntryStringer) Handler {
 	return &delHandler{
 		edb:           edb,
 		entryStringer: entryStringer,
@@ -20,7 +19,7 @@ func NewDelHandler(edb expldb.Deleter, entryStringer util.EntryStringer) Handler
 
 type delHandler struct {
 	edb           expldb.Deleter
-	entryStringer util.EntryStringer
+	entryStringer types.EntryStringer
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
