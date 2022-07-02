@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func NewDelHandler(edb expldb.Deleter) Handler {
@@ -19,7 +20,7 @@ type delHandler struct {
 	edb expldb.Deleter
 }
 
-func (d *delHandler) Handle(in *Request, r *http.Request) (*Response, error) {
+func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> <Index>", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Index>.*?)\\pZ*$")

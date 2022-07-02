@@ -9,7 +9,7 @@ import (
 )
 
 type JwtGenerator interface {
-	Generate(subject string, valid time.Duration) (jwtStr string, err error)
+	Generate(subject string, expiresAt time.Time) (jwtStr string, err error)
 }
 
 type JwtValidator interface {
@@ -25,9 +25,9 @@ type jwtGenerator struct {
 	key    any
 }
 
-func (j *jwtGenerator) Generate(subject string, valid time.Duration) (string, error) {
+func (j *jwtGenerator) Generate(subject string, expiresAt time.Time) (string, error) {
 	claims := jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(valid)),
+		ExpiresAt: jwt.NewNumericDate(expiresAt),
 		Subject:   subject,
 	}
 	return jwt.NewWithClaims(j.method, claims).SignedString(j.key)

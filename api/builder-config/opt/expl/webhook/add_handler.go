@@ -20,7 +20,7 @@ type addHandler struct {
 	edb expldb.Adder
 }
 
-func (a *addHandler) Handle(in *Request, r *http.Request) (*Response, error) {
+func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Value>\\PZ.*?)\\pZ*$")
 	match := sep.FindStringSubmatch(in.Text)
 	if match == nil {
@@ -37,7 +37,7 @@ func (a *addHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 		return NewResponse("Tut mir leid, die Erklärung ist leider zu lang."), nil
 	}
 
-	entry, err := a.edb.Add(r.Context(), key, value, in.UserName, time.Now())
+	entry, err := a.edb.Add(r.Context(), key, value, in.UserName, now)
 	if err != nil {
 		return nil, err
 	}

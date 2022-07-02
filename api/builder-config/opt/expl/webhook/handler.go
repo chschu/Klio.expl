@@ -5,25 +5,26 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 type Handler interface {
-	Handle(in *Request, r *http.Request) (*Response, error)
+	Handle(in *Request, r *http.Request, now time.Time) (*Response, error)
 }
 
-type HandlerFunc func(in *Request, r *http.Request) (*Response, error)
+type HandlerFunc func(in *Request, r *http.Request, now time.Time) (*Response, error)
 
-func (f HandlerFunc) Handle(in *Request, r *http.Request) (*Response, error) {
-	return f(in, r)
+func (f HandlerFunc) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
+	return f(in, r, now)
 }
 
 func RequiredTokenAdapter(token string) func(handler Handler) Handler {
 	return func(handler Handler) Handler {
-		return HandlerFunc(func(in *Request, r *http.Request) (*Response, error) {
+		return HandlerFunc(func(in *Request, r *http.Request, now time.Time) (*Response, error) {
 			if in.Token != token {
 				return nil, fmt.Errorf("invalid token: %s", in.Token)
 			}
-			return handler.Handle(in, r)
+			return handler.Handle(in, r, now)
 		})
 	}
 }
@@ -38,7 +39,7 @@ func ToHttpHandler(handler Handler) http.Handler {
 			return
 		}
 
-		out, err := handler.Handle(&in, r)
+		out, err := handler.Handle(&in, r, time.Now())
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			logrus.Errorf("error handling decoded request: %v", err)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func NewTopHandler(edb expldb.Topper) Handler {
@@ -19,7 +20,7 @@ type topHandler struct {
 	edb expldb.Topper
 }
 
-func (e *topHandler) Handle(in *Request, r *http.Request) (*Response, error) {
+func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ*$")
 	if !sep.MatchString(in.Text) {
 		return NewResponse(fmt.Sprintf("Syntax: %s", in.TriggerWord)), nil

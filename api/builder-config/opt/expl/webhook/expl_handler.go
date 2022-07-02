@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
@@ -27,7 +28,7 @@ type explHandler struct {
 	jwtGenerator      security.JwtGenerator
 }
 
-func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
+func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> ( <Index> | <VonIndex>:<BisIndex> )*", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)(?:\\pZ+(?P<IndexSpec>.*?))?\\pZ*$")
@@ -62,7 +63,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	} else {
 		if total > count {
 			var totalText string
-			explUrl, err := e.getWebExplUrl(r, key)
+			explUrl, err := e.getWebExplUrl(r, key, now)
 			if err != nil {
 				logrus.Warnf("unable to resolve URL for web expl: %v", err)
 				totalText = fmt.Sprintf("%d Einträge", total)
@@ -88,7 +89,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	return NewResponse(sb.String()), nil
 }
 
-func (e *explHandler) getWebExplUrl(r *http.Request, key string) (*url.URL, error) {
+func (e *explHandler) getWebExplUrl(r *http.Request, key string, now time.Time) (*url.URL, error) {
 	scheme := r.URL.Scheme
 	if scheme == "" {
 		if r.TLS == nil {
@@ -97,7 +98,7 @@ func (e *explHandler) getWebExplUrl(r *http.Request, key string) (*url.URL, erro
 			scheme = "https"
 		}
 	}
-	jwtStr, err := e.jwtGenerator.Generate(key, settings.ExplTokenValidity)
+	jwtStr, err := e.jwtGenerator.Generate(key, now.Add(settings.ExplTokenValidity))
 	if err != nil {
 		return nil, err
 	}

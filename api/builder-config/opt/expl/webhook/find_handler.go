@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator) Handler {
@@ -26,7 +27,7 @@ type findHandler struct {
 	jwtGenerator      security.JwtGenerator
 }
 
-func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
+func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <POSIX-Regex>", in.TriggerWord))
 
 	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Regex>\\PZ+)\\pZ*$")
@@ -52,7 +53,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	} else {
 		if total > count {
 			var totalText string
-			findUrl, err := f.getWebFindUrl(r, rex)
+			findUrl, err := f.getWebFindUrl(r, rex, now)
 			if err != nil {
 				logrus.Warnf("unable to resolve URL for web find: %v", err)
 				totalText = fmt.Sprintf("%d Einträge", total)
@@ -78,7 +79,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request) (*Response, error) {
 	return NewResponse(sb.String()), nil
 }
 
-func (f *findHandler) getWebFindUrl(r *http.Request, rex string) (*url.URL, error) {
+func (f *findHandler) getWebFindUrl(r *http.Request, rex string, now time.Time) (*url.URL, error) {
 	scheme := r.URL.Scheme
 	if scheme == "" {
 		if r.TLS == nil {
@@ -87,7 +88,7 @@ func (f *findHandler) getWebFindUrl(r *http.Request, rex string) (*url.URL, erro
 			scheme = "https"
 		}
 	}
-	jwtStr, err := f.jwtGenerator.Generate(rex, settings.FindTokenValidity)
+	jwtStr, err := f.jwtGenerator.Generate(rex, now.Add(settings.FindTokenValidity))
 	if err != nil {
 		return nil, err
 	}
