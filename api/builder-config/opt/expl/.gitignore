@@ -1,2 +1,5 @@
 # binary built with "go build"
 /expl
+
+# files produced by //go:generate
+/generated/

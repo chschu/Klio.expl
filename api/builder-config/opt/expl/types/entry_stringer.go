@@ -8,7 +8,7 @@ import (
 )
 
 type EntryStringer interface {
-	String(*Entry) string
+	String(entry *Entry) string
 }
 
 type EntryStringerSettings interface {
