@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 type IndexSpecParser interface {
@@ -20,47 +19,48 @@ func NewIndexSpecParser() IndexSpecParser {
 type indexSpecParser struct{}
 
 func (p *indexSpecParser) ParseIndexSpec(s string) (IndexSpec, error) {
-	var out = indexSpec{}
+	var ranges []IndexRange
 	sep := regexp.MustCompile("\\pZ+")
 	indexRanges := sep.Split(s, -1)
 	for _, indexRange := range indexRanges {
-		ir, err := p.ParseIndexRange(indexRange)
-		if err != nil {
-			return nil, err
+		if len(indexRange) > 0 {
+			ir, err := p.ParseIndexRange(indexRange)
+			if err != nil {
+				return nil, err
+			}
+			ranges = append(ranges, ir)
 		}
-		out = append(out, ir)
 	}
-	return out, nil
+	return NewIndexSpec(ranges...), nil
 }
 
 func (p *indexSpecParser) ParseIndexRange(s string) (IndexRange, error) {
-	indexes := strings.SplitN(s, ":", 3)
-	l := len(indexes)
-
-	if l < 1 || l > 2 {
+	sep := regexp.MustCompile("^\\pZ*(?P<From>\\PZ+?)(:(?P<To>\\PZ+?))?\\pZ*$")
+	match := sep.FindStringSubmatch(s)
+	if match == nil {
 		return nil, fmt.Errorf("invalid index range: %s", s)
 	}
 
-	from, err := p.ParseIndex(indexes[0])
+	fromStr := match[sep.SubexpIndex("From")]
+	from, err := p.ParseIndex(fromStr)
 	if err != nil {
 		return nil, err
 	}
 
-	var to Index
-	if l == 2 {
-		to, err = p.ParseIndex(indexes[1])
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		to = from
+	toStr := match[sep.SubexpIndex("To")]
+	if toStr == "" {
+		return NewIndexRange(from, from), nil
+	}
+	to, err := p.ParseIndex(toStr)
+	if err != nil {
+		return nil, err
 	}
 
 	return NewIndexRange(from, to), nil
 }
 
 func (p *indexSpecParser) ParseIndex(s string) (Index, error) {
-	sep := regexp.MustCompile("^(?P<Prefix>|-|p)(?P<N>[1-9][0-9]*)$")
+	sep := regexp.MustCompile("^\\pZ*(?P<Prefix>|-|p)(?P<N>[1-9]\\d*)\\pZ*$")
 	match := sep.FindStringSubmatch(s)
 	if match == nil {
 		return nil, fmt.Errorf("invalid index: %s", s)
