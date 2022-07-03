@@ -1,10 +1,30 @@
 package types
 
-import "strings"
+import (
+	"strings"
+)
 
-type IndexSpec []IndexRange
+type IndexSpec interface {
+	SqlCondition() (sqlCondition string, params []any)
+}
 
-func (is IndexSpec) SqlCondition() (sqlCondition string, params []any) {
+func IndexSpecAll() IndexSpec {
+	return indexSpec([]IndexRange{&indexRange{
+		from: HeadIndex(1),
+		to:   TailIndex(1),
+	}})
+}
+
+func IndexSpecSingle(index Index) IndexSpec {
+	return indexSpec([]IndexRange{&indexRange{
+		from: index,
+		to:   index,
+	}})
+}
+
+type indexSpec []IndexRange
+
+func (is indexSpec) SqlCondition() (sqlCondition string, params []any) {
 	sb := strings.Builder{}
 	sb.WriteString("false")
 	for _, ir := range is {
@@ -15,18 +35,4 @@ func (is IndexSpec) SqlCondition() (sqlCondition string, params []any) {
 		params = append(params, indexRangeParams...)
 	}
 	return sb.String(), params
-}
-
-func IndexSpecAll() IndexSpec {
-	return []IndexRange{{
-		From: HeadIndex(1),
-		To:   TailIndex(1),
-	}}
-}
-
-func IndexSpecSingle(index Index) IndexSpec {
-	return []IndexRange{{
-		From: index,
-		To:   index,
-	}}
 }

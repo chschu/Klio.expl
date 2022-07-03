@@ -13,13 +13,14 @@ import (
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings ExplHandlerSettings) Handler {
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, indexSpecParser types.IndexSpecParser, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings ExplHandlerSettings) Handler {
 	return &explHandler{
 		edb:               edb,
 		webExplPathPrefix: webExplPathPrefix,
 		jwtGenerator:      jwtGenerator,
 		entryStringer:     entryStringer,
 		settings:          settings,
+		indexSpecParser:   indexSpecParser,
 	}
 }
 
@@ -31,6 +32,7 @@ type ExplHandlerSettings interface {
 type explHandler struct {
 	edb               expldb.Explainer
 	webExplPathPrefix string
+	indexSpecParser   types.IndexSpecParser
 	jwtGenerator      security.JwtGenerator
 	entryStringer     types.EntryStringer
 	settings          ExplHandlerSettings
@@ -52,7 +54,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		indexSpec = types.IndexSpecAll()
 	} else {
 		var err error
-		indexSpec, err = parseIndexSpec(indexSpecStr)
+		indexSpec, err = e.indexSpecParser.ParseIndexSpec(indexSpecStr)
 		if err != nil {
 			return syntaxResponse, nil
 		}

@@ -1,11 +1,13 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Index interface {
 	fmt.Stringer
 	Value() uint
-	SqlCondition(cmp IndexComparison) (string, []any)
+	SqlCondition(cmp IndexComparison) (sqlCondition string, params []any)
 }
 
 type IndexComparison string

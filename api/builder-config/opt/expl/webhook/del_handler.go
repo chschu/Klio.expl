@@ -10,16 +10,18 @@ import (
 	"time"
 )
 
-func NewDelHandler(edb expldb.Deleter, entryStringer types.EntryStringer) Handler {
+func NewDelHandler(edb expldb.Deleter, indexSpecParser types.IndexSpecParser, entryStringer types.EntryStringer) Handler {
 	return &delHandler{
-		edb:           edb,
-		entryStringer: entryStringer,
+		edb:             edb,
+		indexSpecParser: indexSpecParser,
+		entryStringer:   entryStringer,
 	}
 }
 
 type delHandler struct {
-	edb           expldb.Deleter
-	entryStringer types.EntryStringer
+	edb             expldb.Deleter
+	indexSpecParser types.IndexSpecParser
+	entryStringer   types.EntryStringer
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -33,7 +35,7 @@ func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 	key := match[sep.SubexpIndex("Key")]
 	indexStr := match[sep.SubexpIndex("Index")]
 
-	index, err := parseIndex(indexStr)
+	index, err := d.indexSpecParser.ParseIndex(indexStr)
 	if err != nil {
 		return syntaxResponse, nil
 	}
