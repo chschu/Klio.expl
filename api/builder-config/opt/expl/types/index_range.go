@@ -30,6 +30,9 @@ func (ir *indexRange) To() Index {
 }
 
 func (ir *indexRange) SqlCondition() (sqlCondition string, params []any) {
+	if ir.from == ir.to {
+		return ir.from.SqlCondition(IndexMatching)
+	}
 	fromSql, fromParams := ir.from.SqlCondition(IndexStartingWith)
 	toSql, toParams := ir.to.SqlCondition(IndexEndingWith)
 	return "(" + fromSql + ") AND (" + toSql + ")", append(fromParams, toParams...)

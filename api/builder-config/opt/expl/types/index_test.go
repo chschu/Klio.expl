@@ -15,6 +15,15 @@ func Test_HeadIndex_SqlCondition_StartingWith(t *testing.T) {
 	assert.Equal(t, []any{uint(1923781)}, params)
 }
 
+func Test_HeadIndex_SqlCondition_Matching(t *testing.T) {
+	sut := types.HeadIndex(818664812)
+
+	sql, params := sut.SqlCondition(types.IndexMatching)
+
+	assert.Equal(t, "head_index = ?", sql)
+	assert.Equal(t, []any{uint(818664812)}, params)
+}
+
 func Test_HeadIndex_SqlCondition_EndingWith(t *testing.T) {
 	sut := types.HeadIndex(83817281)
 
@@ -39,6 +48,15 @@ func Test_TailIndex_SqlCondition_StartingWith(t *testing.T) {
 	assert.Equal(t, []any{uint(8919283)}, params)
 }
 
+func Test_TailIndex_SqlCondition_Matching(t *testing.T) {
+	sut := types.TailIndex(1938782663)
+
+	sql, params := sut.SqlCondition(types.IndexMatching)
+
+	assert.Equal(t, "0-tail_index = 0-?", sql)
+	assert.Equal(t, []any{uint(1938782663)}, params)
+}
+
 func Test_TailIndex_SqlCondition_EndingWith(t *testing.T) {
 	sut := types.TailIndex(38389912)
 
@@ -61,6 +79,15 @@ func Test_PermanentIndex_SqlCondition_StartingWith(t *testing.T) {
 
 	assert.Equal(t, "permanent_index >= ?", sql)
 	assert.Equal(t, []any{uint(2799171571)}, params)
+}
+
+func Test_PermanentIndex_SqlCondition_Matching(t *testing.T) {
+	sut := types.PermanentIndex(168947826)
+
+	sql, params := sut.SqlCondition(types.IndexMatching)
+
+	assert.Equal(t, "permanent_index = ?", sql)
+	assert.Equal(t, []any{uint(168947826)}, params)
 }
 
 func Test_PermanentIndex_SqlCondition_EndingWith(t *testing.T) {

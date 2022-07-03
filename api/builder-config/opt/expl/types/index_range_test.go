@@ -6,7 +6,16 @@ import (
 	"testing"
 )
 
-func Test_IndexRange_SqlCondition(t *testing.T) {
+func Test_IndexRange_SqlCondition_Single(t *testing.T) {
+	sut := types.NewIndexRange(types.PermanentIndex(39766283), types.PermanentIndex(39766283))
+
+	sql, params := sut.SqlCondition()
+
+	assert.Equal(t, "permanent_index = ?", sql)
+	assert.Equal(t, []any{uint(39766283)}, params)
+}
+
+func Test_IndexRange_SqlCondition_Range(t *testing.T) {
 	sut := types.NewIndexRange(types.HeadIndex(4102931), types.TailIndex(983142))
 
 	sql, params := sut.SqlCondition()

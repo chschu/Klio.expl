@@ -11,6 +11,7 @@ type IndexComparison string
 
 const (
 	IndexStartingWith IndexComparison = ">="
+	IndexMatching     IndexComparison = "="
 	IndexEndingWith   IndexComparison = "<="
 )
 

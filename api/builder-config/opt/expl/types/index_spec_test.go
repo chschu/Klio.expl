@@ -19,12 +19,13 @@ func Test_IndexSpec_SqlCondition_NonEmpty(t *testing.T) {
 	sut := types.NewIndexSpec(
 		types.NewIndexRange(types.PermanentIndex(17), types.TailIndex(3)),
 		types.NewIndexRange(types.HeadIndex(44), types.HeadIndex(45)),
+		types.NewIndexRange(types.TailIndex(12), types.TailIndex(12)),
 	)
 
 	sql, params := sut.SqlCondition()
 
-	assert.Equal(t, "false OR ((permanent_index >= ?) AND (0-tail_index <= 0-?)) OR ((head_index >= ?) AND (head_index <= ?))", sql)
-	assert.Equal(t, []any{uint(17), uint(3), uint(44), uint(45)}, params)
+	assert.Equal(t, "false OR ((permanent_index >= ?) AND (0-tail_index <= 0-?)) OR ((head_index >= ?) AND (head_index <= ?)) OR (0-tail_index = 0-?)", sql)
+	assert.Equal(t, []any{uint(17), uint(3), uint(44), uint(45), uint(12)}, params)
 }
 
 func Test_IndexSpec_String_Empty(t *testing.T) {
