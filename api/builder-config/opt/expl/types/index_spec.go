@@ -1,11 +1,17 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 )
 
 type IndexSpec interface {
+	fmt.Stringer
 	SqlCondition() (sqlCondition string, params []any)
+}
+
+func NewIndexSpec(r ...IndexRange) IndexSpec {
+	return indexSpec(r)
 }
 
 func IndexSpecAll() IndexSpec {
@@ -27,6 +33,7 @@ type indexSpec []IndexRange
 func (is indexSpec) SqlCondition() (sqlCondition string, params []any) {
 	sb := strings.Builder{}
 	sb.WriteString("false")
+	params = []any{}
 	for _, ir := range is {
 		indexRangeSql, indexRangeParams := ir.SqlCondition()
 		sb.WriteString(" OR (")
@@ -35,4 +42,14 @@ func (is indexSpec) SqlCondition() (sqlCondition string, params []any) {
 		params = append(params, indexRangeParams...)
 	}
 	return sb.String(), params
+}
+
+func (is indexSpec) String() string {
+	sb := strings.Builder{}
+	sb.WriteString("")
+	for _, ir := range is {
+		sb.WriteString(ir.String())
+		sb.WriteRune(' ')
+	}
+	return strings.TrimRight(sb.String(), " ")
 }

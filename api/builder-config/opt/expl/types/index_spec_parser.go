@@ -56,10 +56,7 @@ func (p *indexSpecParser) ParseIndexRange(s string) (IndexRange, error) {
 		to = from
 	}
 
-	return &indexRange{
-		from: from,
-		to:   to,
-	}, nil
+	return NewIndexRange(from, to), nil
 }
 
 func (p *indexSpecParser) ParseIndex(s string) (Index, error) {

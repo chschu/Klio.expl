@@ -1,8 +1,6 @@
 package types
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Index interface {
 	fmt.Stringer
@@ -13,8 +11,8 @@ type Index interface {
 type IndexComparison string
 
 const (
-	IndexFrom IndexComparison = ">="
-	IndexTo   IndexComparison = "<="
+	IndexStartingWith IndexComparison = ">="
+	IndexEndingWith   IndexComparison = "<="
 )
 
 type HeadIndex uint
