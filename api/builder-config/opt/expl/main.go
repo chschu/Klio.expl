@@ -52,12 +52,13 @@ func main() {
 
 	indexSpecParser := types.NewIndexSpecParser()
 	entryStringer := types.NewEntryStringer(s.EntryToStringTimeFormat(), s.EntryToStringLocation())
+	entryListStringer := webhook.NewEntryListStringer(jwtGenerator, entryStringer)
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, entryStringer, s.MaxUTF16LengthForKey(), s.MaxUTF16LengthForValue())))
-	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", indexSpecParser, jwtGenerator, entryStringer, s.MaxExplCount(), s.ExplTokenValidity())))
+	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, indexSpecParser, entryListStringer, s.MaxExplCount(), "/expl/", s.ExplTokenValidity())))
 	r.Handle("/api/del", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_DEL"))(webhook.NewDelHandler(edb, indexSpecParser, entryStringer)))
-	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator, entryStringer, s.MaxFindCount(), s.FindTokenValidity())))
+	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, entryListStringer, s.MaxFindCount(), "/find/", s.FindTokenValidity())))
 	r.Handle("/api/top", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_TOP"))(webhook.NewTopHandler(edb, s.MaxTopCount())))
 	r.Handle("/expl/{jwt:.*}", webChain(web.NewExplHandler(edb, jwtValidator, entryStringer)))
 	r.Handle("/find/{jwt:.*}", webChain(web.NewFindHandler(edb, jwtValidator, entryStringer)))
