@@ -16,14 +16,16 @@ type EntryStringerSettings interface {
 	EntryToStringLocation() *time.Location
 }
 
-func NewEntryStringer(settings EntryStringerSettings) EntryStringer {
+func NewEntryStringer(timeFormat string, timeLocation *time.Location) EntryStringer {
 	return &entryStringer{
-		settings: settings,
+		timeFormat:   timeFormat,
+		timeLocation: timeLocation,
 	}
 }
 
 type entryStringer struct {
-	settings EntryStringerSettings
+	timeFormat   string
+	timeLocation *time.Location
 }
 
 func (s *entryStringer) String(e *Entry) string {
@@ -35,7 +37,7 @@ func (s *entryStringer) String(e *Entry) string {
 		metadata = append(metadata, createdBy)
 	}
 	if e.CreatedAt.Valid {
-		createdAt := e.CreatedAt.Time.In(s.settings.EntryToStringLocation()).Format(s.settings.EntryToStringTimeFormat())
+		createdAt := e.CreatedAt.Time.In(s.timeLocation).Format(s.timeFormat)
 		metadata = append(metadata, createdAt)
 	}
 	metadataText := ""

@@ -13,20 +13,16 @@ import (
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, indexSpecParser types.IndexSpecParser, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings ExplHandlerSettings) Handler {
+func NewExplHandler(edb expldb.Explainer, webExplPathPrefix string, indexSpecParser types.IndexSpecParser, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, maxImmediateResults int, webUrlValidity time.Duration) Handler {
 	return &explHandler{
-		edb:               edb,
-		webExplPathPrefix: webExplPathPrefix,
-		jwtGenerator:      jwtGenerator,
-		entryStringer:     entryStringer,
-		settings:          settings,
-		indexSpecParser:   indexSpecParser,
+		edb:                 edb,
+		webExplPathPrefix:   webExplPathPrefix,
+		jwtGenerator:        jwtGenerator,
+		entryStringer:       entryStringer,
+		indexSpecParser:     indexSpecParser,
+		maxImmediateResults: maxImmediateResults,
+		webUrlValidity:      webUrlValidity,
 	}
-}
-
-type ExplHandlerSettings interface {
-	MaxExplCount() int
-	ExplTokenValidity() time.Duration
 }
 
 type explHandler struct {
@@ -35,7 +31,9 @@ type explHandler struct {
 	indexSpecParser   types.IndexSpecParser
 	jwtGenerator      security.JwtGenerator
 	entryStringer     types.EntryStringer
-	settings          ExplHandlerSettings
+
+	maxImmediateResults int
+	webUrlValidity      time.Duration
 }
 
 func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -60,7 +58,7 @@ func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 		}
 	}
 
-	entries, total, err := e.edb.ExplainWithLimit(r.Context(), key, indexSpec, e.settings.MaxExplCount())
+	entries, total, err := e.edb.ExplainWithLimit(r.Context(), key, indexSpec, e.maxImmediateResults)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +106,7 @@ func (e *explHandler) getWebExplUrl(r *http.Request, key string, now time.Time) 
 			scheme = "https"
 		}
 	}
-	jwtStr, err := e.jwtGenerator.Generate(key, now.Add(e.settings.ExplTokenValidity()))
+	jwtStr, err := e.jwtGenerator.Generate(key, now.Add(e.webUrlValidity))
 	if err != nil {
 		return nil, err
 	}

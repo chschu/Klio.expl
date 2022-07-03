@@ -13,19 +13,15 @@ import (
 	"time"
 )
 
-func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, settings FindHandlerSettings) Handler {
+func NewFindHandler(edb expldb.Finder, webFindPathPrefix string, jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer, maxImmediateResults int, webUrlValidity time.Duration) Handler {
 	return &findHandler{
-		edb:               edb,
-		webFindPathPrefix: webFindPathPrefix,
-		jwtGenerator:      jwtGenerator,
-		entryStringer:     entryStringer,
-		settings:          settings,
+		edb:                 edb,
+		webFindPathPrefix:   webFindPathPrefix,
+		jwtGenerator:        jwtGenerator,
+		entryStringer:       entryStringer,
+		maxImmediateResults: maxImmediateResults,
+		webUrlValidity:      webUrlValidity,
 	}
-}
-
-type FindHandlerSettings interface {
-	MaxFindCount() int
-	FindTokenValidity() time.Duration
 }
 
 type findHandler struct {
@@ -33,7 +29,9 @@ type findHandler struct {
 	webFindPathPrefix string
 	jwtGenerator      security.JwtGenerator
 	entryStringer     types.EntryStringer
-	settings          FindHandlerSettings
+
+	maxImmediateResults int
+	webUrlValidity      time.Duration
 }
 
 func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -46,7 +44,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 	}
 	rex := match[sep.SubexpIndex("Regex")]
 
-	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, f.settings.MaxFindCount())
+	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, f.maxImmediateResults)
 	if err == expldb.ErrFindRegexInvalid {
 		return syntaxResponse, nil
 	}
@@ -97,7 +95,7 @@ func (f *findHandler) getWebFindUrl(r *http.Request, rex string, now time.Time) 
 			scheme = "https"
 		}
 	}
-	jwtStr, err := f.jwtGenerator.Generate(rex, now.Add(f.settings.FindTokenValidity()))
+	jwtStr, err := f.jwtGenerator.Generate(rex, now.Add(f.webUrlValidity))
 	if err != nil {
 		return nil, err
 	}

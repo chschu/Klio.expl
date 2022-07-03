@@ -9,20 +9,17 @@ import (
 	"time"
 )
 
-func NewTopHandler(edb expldb.Topper, settings TopHandlerSettings) Handler {
+func NewTopHandler(edb expldb.Topper, maxResults int) Handler {
 	return &topHandler{
-		edb:      edb,
-		settings: settings,
+		edb:        edb,
+		maxResults: maxResults,
 	}
 }
 
-type TopHandlerSettings interface {
-	MaxTopCount() int
-}
-
 type topHandler struct {
-	edb      expldb.Topper
-	settings TopHandlerSettings
+	edb expldb.Topper
+
+	maxResults int
 }
 
 func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -31,7 +28,7 @@ func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 		return NewResponse(fmt.Sprintf("Syntax: %s", in.TriggerWord)), nil
 	}
 
-	entries, err := e.edb.Top(r.Context(), e.settings.MaxTopCount())
+	entries, err := e.edb.Top(r.Context(), e.maxResults)
 	if err != nil {
 		return nil, err
 	}

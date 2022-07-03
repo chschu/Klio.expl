@@ -10,23 +10,21 @@ import (
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb expldb.Adder, entryStringer types.EntryStringer, settings AddHandlerSettings) Handler {
+func NewAddHandler(edb expldb.Adder, entryStringer types.EntryStringer, maxUTF16LengthForKey int, maxUTF16LengthForValue int) Handler {
 	return &addHandler{
-		edb:           edb,
-		entryStringer: entryStringer,
-		settings:      settings,
+		edb:                    edb,
+		entryStringer:          entryStringer,
+		maxUTF16LengthForKey:   maxUTF16LengthForKey,
+		maxUTF16LengthForValue: maxUTF16LengthForValue,
 	}
-}
-
-type AddHandlerSettings interface {
-	MaxUTF16LengthForKey() int
-	MaxUTF16LengthForValue() int
 }
 
 type addHandler struct {
 	edb           expldb.Adder
 	entryStringer types.EntryStringer
-	settings      AddHandlerSettings
+
+	maxUTF16LengthForKey   int
+	maxUTF16LengthForValue int
 }
 
 func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
@@ -38,11 +36,11 @@ func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Respo
 	key := match[sep.SubexpIndex("Key")]
 	value := match[sep.SubexpIndex("Value")]
 
-	if len(utf16.Encode([]rune(key))) > a.settings.MaxUTF16LengthForKey() {
+	if len(utf16.Encode([]rune(key))) > a.maxUTF16LengthForKey {
 		return NewResponse("Tut mir leid, der Begriff ist leider zu lang."), nil
 	}
 
-	if len(utf16.Encode([]rune(value))) > a.settings.MaxUTF16LengthForValue() {
+	if len(utf16.Encode([]rune(value))) > a.maxUTF16LengthForValue {
 		return NewResponse("Tut mir leid, die Erklärung ist leider zu lang."), nil
 	}
 

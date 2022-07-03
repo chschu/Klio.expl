@@ -8,7 +8,6 @@ import (
 	"klio/expl/generated/expldb_mocks"
 	"klio/expl/generated/security_mocks"
 	"klio/expl/generated/types_mocks"
-	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"math/rand"
@@ -23,8 +22,8 @@ func Test_ExplHandler_Expl_SoftFail_InvalidSyntax(t *testing.T) {
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, 50, time.Minute)
 
 	in := &webhook.Request{
 		Text:        "!expl ",
@@ -46,8 +45,10 @@ func Test_ExplHandler_Expl_ParamsPassedToExplainer_WithIndexSpec(t *testing.T) {
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	limit := 278372
+
+	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, limit, time.Minute)
 
 	in := &webhook.Request{
 		Text: "!expl test-key index-spec-string  ",
@@ -56,13 +57,10 @@ func Test_ExplHandler_Expl_ParamsPassedToExplainer_WithIndexSpec(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "dummy", "dummy")
 	req := httptest.NewRequest("DUMMY", "/dummy", nil).WithContext(ctx)
 
-	limit := 278372
-
 	indexSpecMock := types_mocks.NewMockIndexSpec(ctrl)
 
 	indexSpecParserMock.EXPECT().ParseIndexSpec("index-spec-string").Return(indexSpecMock, nil)
-	settingsMock.EXPECT().MaxExplCount().Return(limit)
-	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", indexSpecMock, limit).Return(nil, 0, nil)
+	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", indexSpecMock, limit)
 
 	_, err := sut.Handle(in, req, time.Now())
 	assert.NoError(t, err)
@@ -74,8 +72,10 @@ func Test_ExplHandler_Expl_ParamsPassedToExplainer_WithoutIndexSpec(t *testing.T
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	limit := 3918293
+
+	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, limit, time.Minute)
 
 	in := &webhook.Request{
 		Text: "!expl test-key ",
@@ -84,10 +84,7 @@ func Test_ExplHandler_Expl_ParamsPassedToExplainer_WithoutIndexSpec(t *testing.T
 	ctx := context.WithValue(context.Background(), "dummy", "dummy")
 	req := httptest.NewRequest("DUMMY", "/dummy", nil).WithContext(ctx)
 
-	limit := 3918293
-
-	settingsMock.EXPECT().MaxExplCount().Return(limit)
-	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", types.IndexSpecAll(), limit).Return(nil, 0, nil)
+	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", types.IndexSpecAll(), limit)
 
 	_, err := sut.Handle(in, req, time.Now())
 	assert.NoError(t, err)
@@ -99,8 +96,8 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_OneResult(t *testing.T) {
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, 50, time.Minute)
 
 	in := &webhook.Request{
 		Text: "!expl foo",
@@ -112,7 +109,6 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_OneResult(t *testing.T) {
 	entry1String := uuid.Must(uuid.NewUUID()).String()
 	entries := []types.Entry{*entry1}
 
-	settingsMock.EXPECT().MaxExplCount()
 	explainerMock.EXPECT().ExplainWithLimit(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(entries, 1, nil)
 	entryStringerMock.EXPECT().String(entry1).Return(entry1String)
 
@@ -128,8 +124,8 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_MultipleResults(t *testing.T)
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	sut := webhook.NewExplHandler(explainerMock, "/prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, 50, time.Minute)
 
 	in := &webhook.Request{
 		Text: "!expl foo",
@@ -143,7 +139,6 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_MultipleResults(t *testing.T)
 	entry2String := uuid.Must(uuid.NewUUID()).String()
 	entries := []types.Entry{*entry1, *entry2}
 
-	settingsMock.EXPECT().MaxExplCount()
 	explainerMock.EXPECT().ExplainWithLimit(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(entries, 2, nil)
 	entryStringerMock.EXPECT().String(entry1).Return(entry1String)
 	entryStringerMock.EXPECT().String(entry2).Return(entry2String)
@@ -161,8 +156,10 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_OverLimitResults(t *testing.T
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
 	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
-	settingsMock := webhook_mocks.NewMockExplHandlerSettings(ctrl)
-	sut := webhook.NewExplHandler(explainerMock, "/web-expl-prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, settingsMock)
+
+	jwtValidity := 13921 * time.Second
+
+	sut := webhook.NewExplHandler(explainerMock, "/web-expl-prefix/", indexSpecParserMock, jwtGeneratorMock, entryStringerMock, 50, jwtValidity)
 
 	in := &webhook.Request{
 		Text: "!expl foo",
@@ -171,7 +168,6 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_OverLimitResults(t *testing.T
 	req := httptest.NewRequest("DUMMY", "https://example.org:1234/dummy", nil)
 
 	now := time.Now()
-	jwtValidity := 13921 * time.Second
 
 	entry1 := &types.Entry{Id: rand.Int31()}
 	entry1String := uuid.Must(uuid.NewUUID()).String()
@@ -179,9 +175,7 @@ func Test_ExplHandler_Expl_ExplainerResultReturned_OverLimitResults(t *testing.T
 	entry2String := uuid.Must(uuid.NewUUID()).String()
 	entries := []types.Entry{*entry1, *entry2}
 
-	settingsMock.EXPECT().MaxExplCount()
 	explainerMock.EXPECT().ExplainWithLimit(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(entries, 198319, nil)
-	settingsMock.EXPECT().ExplTokenValidity().Return(jwtValidity)
 	jwtGeneratorMock.EXPECT().Generate("foo", now.Add(jwtValidity)).Return("eyJWT", nil)
 	entryStringerMock.EXPECT().String(entry1).Return(entry1String)
 	entryStringerMock.EXPECT().String(entry2).Return(entry2String)

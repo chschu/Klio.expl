@@ -44,19 +44,21 @@ func main() {
 	}(edb)
 	logrus.Info("Database successfully initialized")
 
+	s := settings.Instance
+
 	useProxyHeaders := mustParseBool(mustLookupEnv("USE_PROXY_HEADERS"))
-	webChain := compose(timeoutAdapter(settings.Instance.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
+	webChain := compose(timeoutAdapter(s.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
 	webhookChain := compose(webChain, webhook.ToHttpHandler)
 
 	indexSpecParser := types.NewIndexSpecParser()
-	entryStringer := types.NewEntryStringer(settings.Instance)
+	entryStringer := types.NewEntryStringer(s.EntryToStringTimeFormat(), s.EntryToStringLocation())
 
 	r := mux.NewRouter()
-	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, entryStringer, settings.Instance)))
-	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", indexSpecParser, jwtGenerator, entryStringer, settings.Instance)))
+	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(webhook.NewAddHandler(edb, entryStringer, s.MaxUTF16LengthForKey(), s.MaxUTF16LengthForValue())))
+	r.Handle("/api/expl", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_EXPL"))(webhook.NewExplHandler(edb, "/expl/", indexSpecParser, jwtGenerator, entryStringer, s.MaxExplCount(), s.ExplTokenValidity())))
 	r.Handle("/api/del", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_DEL"))(webhook.NewDelHandler(edb, indexSpecParser, entryStringer)))
-	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator, entryStringer, settings.Instance)))
-	r.Handle("/api/top", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_TOP"))(webhook.NewTopHandler(edb, settings.Instance)))
+	r.Handle("/api/find", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_FIND"))(webhook.NewFindHandler(edb, "/find/", jwtGenerator, entryStringer, s.MaxFindCount(), s.FindTokenValidity())))
+	r.Handle("/api/top", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_TOP"))(webhook.NewTopHandler(edb, s.MaxTopCount())))
 	r.Handle("/expl/{jwt:.*}", webChain(web.NewExplHandler(edb, jwtValidator, entryStringer)))
 	r.Handle("/find/{jwt:.*}", webChain(web.NewFindHandler(edb, jwtValidator, entryStringer)))
 
