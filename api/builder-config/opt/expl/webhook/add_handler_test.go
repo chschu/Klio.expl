@@ -12,8 +12,7 @@ import (
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"math/rand"
-	"net/http"
-	"strings"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -30,20 +29,18 @@ func Test_AddHandler_Add_Success(t *testing.T) {
 		Text:     "!add this is a test",
 	}
 
-	req, err := http.NewRequest("DUMMY", "/dummy", strings.NewReader("dummy"))
-	assert.NoError(t, err, "test preparation failed")
-	ctx := context.WithValue(req.Context(), "dummy", "dummy")
-	req = req.WithContext(ctx)
+	ctx := context.WithValue(context.Background(), "dummy", "dummy")
+	req := httptest.NewRequest("DUMMY", "/dummy", nil).WithContext(ctx)
 
 	now := time.Now()
 
 	entry := &types.Entry{Id: rand.Int31()}
 	entryString := uuid.Must(uuid.NewUUID()).String()
 
-	adderMock.EXPECT().Add(ctx, "this", "is a test", "user", now).Return(entry, nil)
-	entryStringerMock.EXPECT().String(entry).Return(entryString)
 	settingsMock.EXPECT().MaxUTF16LengthForKey().Return(50)
 	settingsMock.EXPECT().MaxUTF16LengthForValue().Return(50)
+	adderMock.EXPECT().Add(ctx, "this", "is a test", "user", now).Return(entry, nil)
+	entryStringerMock.EXPECT().String(entry).Return(entryString)
 
 	out, err := sut.Handle(in, req, now)
 
@@ -64,8 +61,7 @@ func Test_AddHandler_Add_SoftFail_InvalidSyntax(t *testing.T) {
 		TriggerWord: "!trigger",
 	}
 
-	req, err := http.NewRequest("DUMMY", "/dummy", strings.NewReader("dummy"))
-	assert.NoError(t, err, "test preparation failed")
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
 
 	out, err := sut.Handle(in, req, time.Now())
 
@@ -85,8 +81,7 @@ func Test_AddHandler_Add_SoftFail_KeyTooLong(t *testing.T) {
 		Text:     "!add 😇👍😘😋😱 those are great!",
 	}
 
-	req, err := http.NewRequest("DUMMY", "/dummy", strings.NewReader("dummy"))
-	assert.NoError(t, err, "test preparation failed")
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
 
 	settingsMock.EXPECT().MaxUTF16LengthForKey().Return(9)
 	settingsMock.EXPECT().MaxUTF16LengthForValue().Return(50).AnyTimes()
@@ -109,8 +104,7 @@ func Test_AddHandler_Add_SoftFail_ValueTooLong(t *testing.T) {
 		Text:     "!add key this is too long",
 	}
 
-	req, err := http.NewRequest("DUMMY", "/dummy", strings.NewReader("dummy"))
-	assert.NoError(t, err, "test preparation failed")
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
 
 	settingsMock.EXPECT().MaxUTF16LengthForKey().Return(50).AnyTimes()
 	settingsMock.EXPECT().MaxUTF16LengthForValue().Return(15)
@@ -133,16 +127,15 @@ func Test_AddHandler_Add_Fail_AddReturnsError(t *testing.T) {
 		Text:     "!add this is unfortunate",
 	}
 
-	req, err := http.NewRequest("DUMMY", "/dummy", strings.NewReader("dummy"))
-	assert.NoError(t, err, "test preparation failed")
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
 
 	now := time.Now()
 
 	expectedError := errors.New("expected error")
 
-	adderMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedError)
 	settingsMock.EXPECT().MaxUTF16LengthForKey().Return(50)
 	settingsMock.EXPECT().MaxUTF16LengthForValue().Return(50)
+	adderMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedError)
 
 	out, err := sut.Handle(in, req, now)
 
