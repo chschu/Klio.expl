@@ -7,18 +7,30 @@ type Index interface {
 	SqlCondition(cmp IndexComparison) (sqlCondition string, params []any)
 }
 
-type IndexComparison string
+type IndexComparison int
 
 const (
-	IndexStartingWith IndexComparison = ">="
-	IndexMatching     IndexComparison = "="
-	IndexEndingWith   IndexComparison = "<="
+	IndexStartingWith IndexComparison = iota
+	IndexMatching
+	IndexEndingWith
 )
+
+var ascendingIndexComparisonOperator = map[IndexComparison]string{
+	IndexStartingWith: ">=",
+	IndexMatching:     "=",
+	IndexEndingWith:   "<=",
+}
+
+var descendingIndexComparisonOperator = map[IndexComparison]string{
+	IndexStartingWith: "<=",
+	IndexMatching:     "=",
+	IndexEndingWith:   ">=",
+}
 
 type HeadIndex uint
 
 func (i HeadIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "head_index " + string(cmp) + " ?", []any{uint(i)}
+	return "head_index " + ascendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
 }
 
 func (i HeadIndex) String() string {
@@ -28,7 +40,7 @@ func (i HeadIndex) String() string {
 type TailIndex uint
 
 func (i TailIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "0-tail_index " + string(cmp) + " 0-?", []any{uint(i)}
+	return "tail_index " + descendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
 }
 
 func (i TailIndex) String() string {
@@ -38,7 +50,7 @@ func (i TailIndex) String() string {
 type PermanentIndex uint
 
 func (i PermanentIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "permanent_index " + string(cmp) + " ?", []any{uint(i)}
+	return "permanent_index " + ascendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
 }
 
 func (i PermanentIndex) String() string {

@@ -24,7 +24,7 @@ func Test_IndexSpec_SqlCondition_NonEmpty(t *testing.T) {
 
 	sql, params := sut.SqlCondition()
 
-	assert.Equal(t, "false OR ((permanent_index >= ?) AND (0-tail_index <= 0-?)) OR ((head_index >= ?) AND (head_index <= ?)) OR (0-tail_index = 0-?)", sql)
+	assert.Equal(t, "false OR ((permanent_index >= ?) AND (tail_index >= ?)) OR ((head_index >= ?) AND (head_index <= ?)) OR (tail_index = ?)", sql)
 	assert.Equal(t, []any{uint(17), uint(3), uint(44), uint(45), uint(12)}, params)
 }
 

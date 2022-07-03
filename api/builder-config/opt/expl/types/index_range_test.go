@@ -20,7 +20,7 @@ func Test_IndexRange_SqlCondition_Range(t *testing.T) {
 
 	sql, params := sut.SqlCondition()
 
-	assert.Equal(t, "(head_index >= ?) AND (0-tail_index <= 0-?)", sql)
+	assert.Equal(t, "(head_index >= ?) AND (tail_index >= ?)", sql)
 	assert.Equal(t, []any{uint(4102931), uint(983142)}, params)
 }
 

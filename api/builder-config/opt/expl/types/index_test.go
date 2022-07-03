@@ -44,7 +44,7 @@ func Test_TailIndex_SqlCondition_StartingWith(t *testing.T) {
 
 	sql, params := sut.SqlCondition(types.IndexStartingWith)
 
-	assert.Equal(t, "0-tail_index >= 0-?", sql)
+	assert.Equal(t, "tail_index <= ?", sql)
 	assert.Equal(t, []any{uint(8919283)}, params)
 }
 
@@ -53,7 +53,7 @@ func Test_TailIndex_SqlCondition_Matching(t *testing.T) {
 
 	sql, params := sut.SqlCondition(types.IndexMatching)
 
-	assert.Equal(t, "0-tail_index = 0-?", sql)
+	assert.Equal(t, "tail_index = ?", sql)
 	assert.Equal(t, []any{uint(1938782663)}, params)
 }
 
@@ -62,7 +62,7 @@ func Test_TailIndex_SqlCondition_EndingWith(t *testing.T) {
 
 	sql, params := sut.SqlCondition(types.IndexEndingWith)
 
-	assert.Equal(t, "0-tail_index <= 0-?", sql)
+	assert.Equal(t, "tail_index >= ?", sql)
 	assert.Equal(t, []any{uint(38389912)}, params)
 }
 
