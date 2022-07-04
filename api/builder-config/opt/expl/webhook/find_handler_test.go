@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/expldb_mocks"
 	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
@@ -16,7 +15,7 @@ import (
 
 func Test_FindHandler_Find_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	finderMock := expldb_mocks.NewMockFinder(ctrl)
+	finderMock := webhook_mocks.NewMockLimitedFinder(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
 	maxImmediateResults := 278372
@@ -48,7 +47,7 @@ func Test_FindHandler_Find_Success(t *testing.T) {
 
 func Test_FindHandler_Find_SoftFail_InvalidSyntax(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	finderMock := expldb_mocks.NewMockFinder(ctrl)
+	finderMock := webhook_mocks.NewMockLimitedFinder(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
 	sut := webhook.NewFindHandler(finderMock, entryListStringerMock, 50, "/dummy/", time.Minute)

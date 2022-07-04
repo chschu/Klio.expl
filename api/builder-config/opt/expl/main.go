@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"io"
 	"klio/expl/expldb"
 	"klio/expl/security"
 	"klio/expl/settings"
@@ -30,13 +31,14 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	jwtGenerator, jwtValidator := security.NewJwtHandlers(jwt.SigningMethodHS256, jwtKey, jwtKey)
+	jwtGenerator := security.NewJWTGenerator(jwt.SigningMethodHS256, jwtKey)
+	jwtValidator := security.NewJWTValidator(jwt.SigningMethodHS256, jwtKey)
 
 	edb, err := expldb.NewExplDB(mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	defer func(e expldb.ExplDB) {
+	defer func(e io.Closer) {
 		err := e.Close()
 		if err != nil {
 			logrus.Fatal(err)

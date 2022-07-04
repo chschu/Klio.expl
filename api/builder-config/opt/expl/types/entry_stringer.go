@@ -7,11 +7,7 @@ import (
 	"time"
 )
 
-type EntryStringer interface {
-	String(entry *Entry) string
-}
-
-func NewEntryStringer(timeFormat string, timeLocation *time.Location) EntryStringer {
+func NewEntryStringer(timeFormat string, timeLocation *time.Location) *entryStringer {
 	return &entryStringer{
 		timeFormat:   timeFormat,
 		timeLocation: timeLocation,

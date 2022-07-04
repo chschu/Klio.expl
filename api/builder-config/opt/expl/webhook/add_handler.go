@@ -1,8 +1,8 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
-	"klio/expl/expldb"
 	"klio/expl/types"
 	"net/http"
 	"regexp"
@@ -10,7 +10,11 @@ import (
 	"unicode/utf16"
 )
 
-func NewAddHandler(edb expldb.Adder, entryStringer types.EntryStringer, maxUTF16LengthForKey int, maxUTF16LengthForValue int) Handler {
+type Adder interface {
+	Add(ctx context.Context, key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error)
+}
+
+func NewAddHandler(edb Adder, entryStringer EntryStringer, maxUTF16LengthForKey int, maxUTF16LengthForValue int) *addHandler {
 	return &addHandler{
 		edb:                    edb,
 		entryStringer:          entryStringer,
@@ -20,8 +24,8 @@ func NewAddHandler(edb expldb.Adder, entryStringer types.EntryStringer, maxUTF16
 }
 
 type addHandler struct {
-	edb           expldb.Adder
-	entryStringer types.EntryStringer
+	edb           Adder
+	entryStringer EntryStringer
 
 	maxUTF16LengthForKey   int
 	maxUTF16LengthForValue int

@@ -1,15 +1,20 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
-	"klio/expl/expldb"
+	"klio/expl/types"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func NewTopHandler(edb expldb.Topper, maxResults int) Handler {
+type Topper interface {
+	Top(ctx context.Context, count int) (entries []types.Entry, err error)
+}
+
+func NewTopHandler(edb Topper, maxResults int) *topHandler {
 	return &topHandler{
 		edb:        edb,
 		maxResults: maxResults,
@@ -17,7 +22,7 @@ func NewTopHandler(edb expldb.Topper, maxResults int) Handler {
 }
 
 type topHandler struct {
-	edb expldb.Topper
+	edb Topper
 
 	maxResults int
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/expldb_mocks"
 	"klio/expl/generated/types_mocks"
 	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
@@ -17,7 +16,7 @@ import (
 
 func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := expldb_mocks.NewMockExplainer(ctrl)
+	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
@@ -53,7 +52,7 @@ func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 
 func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := expldb_mocks.NewMockExplainer(ctrl)
+	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
@@ -86,7 +85,7 @@ func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 
 func Test_ExplHandler_Expl_SoftFail_InvalidSyntax(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := expldb_mocks.NewMockExplainer(ctrl)
+	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
 	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 

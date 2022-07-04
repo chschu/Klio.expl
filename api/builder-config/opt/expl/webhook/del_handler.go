@@ -1,8 +1,8 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
-	"klio/expl/expldb"
 	"klio/expl/types"
 	"net/http"
 	"regexp"
@@ -10,18 +10,26 @@ import (
 	"time"
 )
 
-func NewDelHandler(edb expldb.Deleter, indexSpecParser types.IndexSpecParser, entryStringer types.EntryStringer) Handler {
+type IndexParser interface {
+	ParseIndex(s string) (types.Index, error)
+}
+
+type Deleter interface {
+	Delete(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
+}
+
+func NewDelHandler(edb Deleter, indexParser IndexParser, entryStringer EntryStringer) *delHandler {
 	return &delHandler{
-		edb:             edb,
-		indexSpecParser: indexSpecParser,
-		entryStringer:   entryStringer,
+		edb:           edb,
+		indexParser:   indexParser,
+		entryStringer: entryStringer,
 	}
 }
 
 type delHandler struct {
-	edb             expldb.Deleter
-	indexSpecParser types.IndexSpecParser
-	entryStringer   types.EntryStringer
+	edb           Deleter
+	indexParser   IndexParser
+	entryStringer EntryStringer
 }
 
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
@@ -35,7 +43,7 @@ func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Respons
 	key := match[sep.SubexpIndex("Key")]
 	indexStr := match[sep.SubexpIndex("Index")]
 
-	index, err := d.indexSpecParser.ParseIndex(indexStr)
+	index, err := d.indexParser.ParseIndex(indexStr)
 	if err != nil {
 		return syntaxResponse, nil
 	}

@@ -1,15 +1,20 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
 	"klio/expl/expldb"
-	"klio/expl/security"
+	"klio/expl/types"
 	"net/http"
 	"regexp"
 	"time"
 )
 
-func NewFindHandler(edb expldb.Finder, entryListStringer EntryListStringer, maxImmediateResults int, webUrlPathPrefix string, webUrlValidity time.Duration) Handler {
+type LimitedFinder interface {
+	FindWithLimit(ctx context.Context, rex string, limit int) (entries []types.Entry, total int, err error)
+}
+
+func NewFindHandler(edb LimitedFinder, entryListStringer EntryListStringer, maxImmediateResults int, webUrlPathPrefix string, webUrlValidity time.Duration) *findHandler {
 	return &findHandler{
 		edb:                 edb,
 		entryListStringer:   entryListStringer,
@@ -20,8 +25,7 @@ func NewFindHandler(edb expldb.Finder, entryListStringer EntryListStringer, maxI
 }
 
 type findHandler struct {
-	edb               expldb.Finder
-	jwtGenerator      security.JwtGenerator
+	edb               LimitedFinder
 	entryListStringer EntryListStringer
 
 	maxImmediateResults int

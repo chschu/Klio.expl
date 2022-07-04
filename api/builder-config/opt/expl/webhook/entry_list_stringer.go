@@ -3,7 +3,6 @@ package webhook
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"klio/expl/security"
 	"klio/expl/types"
 	"net/http"
 	"net/url"
@@ -11,11 +10,7 @@ import (
 	"time"
 )
 
-type EntryListStringer interface {
-	String(entries []types.Entry, total int, subject string, webUrlPathPrefix string, webUrlExpiresAt time.Time, req *http.Request) string
-}
-
-func NewEntryListStringer(jwtGenerator security.JwtGenerator, entryStringer types.EntryStringer) EntryListStringer {
+func NewEntryListStringer(jwtGenerator JwtGenerator, entryStringer EntryStringer) *entryListStringer {
 	return &entryListStringer{
 		jwtGenerator:  jwtGenerator,
 		entryStringer: entryStringer,
@@ -23,8 +18,8 @@ func NewEntryListStringer(jwtGenerator security.JwtGenerator, entryStringer type
 }
 
 type entryListStringer struct {
-	jwtGenerator  security.JwtGenerator
-	entryStringer types.EntryStringer
+	jwtGenerator  JwtGenerator
+	entryStringer EntryStringer
 }
 
 func (e *entryListStringer) String(entries []types.Entry, total int, webUrlSubject string, webUrlPathPrefix string, webUrlExpiresAt time.Time, req *http.Request) string {

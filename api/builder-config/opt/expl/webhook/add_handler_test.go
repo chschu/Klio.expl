@@ -6,8 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/expldb_mocks"
-	"klio/expl/generated/types_mocks"
+	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"math/rand"
@@ -18,8 +17,8 @@ import (
 
 func Test_AddHandler_Add_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	adderMock := expldb_mocks.NewMockAdder(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	adderMock := webhook_mocks.NewMockAdder(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewAddHandler(adderMock, entryStringerMock, 50, 50)
 
@@ -47,8 +46,8 @@ func Test_AddHandler_Add_Success(t *testing.T) {
 
 func Test_AddHandler_Add_SoftFail_InvalidSyntax(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	adderMock := expldb_mocks.NewMockAdder(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	adderMock := webhook_mocks.NewMockAdder(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewAddHandler(adderMock, entryStringerMock, 50, 50)
 
@@ -68,8 +67,8 @@ func Test_AddHandler_Add_SoftFail_InvalidSyntax(t *testing.T) {
 
 func Test_AddHandler_Add_SoftFail_KeyTooLong(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	adderMock := expldb_mocks.NewMockAdder(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	adderMock := webhook_mocks.NewMockAdder(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewAddHandler(adderMock, entryStringerMock, 9, 50)
 
@@ -88,8 +87,8 @@ func Test_AddHandler_Add_SoftFail_KeyTooLong(t *testing.T) {
 
 func Test_AddHandler_Add_SoftFail_ValueTooLong(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	adderMock := expldb_mocks.NewMockAdder(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	adderMock := webhook_mocks.NewMockAdder(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewAddHandler(adderMock, entryStringerMock, 50, 15)
 
@@ -108,8 +107,8 @@ func Test_AddHandler_Add_SoftFail_ValueTooLong(t *testing.T) {
 
 func Test_AddHandler_Add_Fail_AddReturnsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	adderMock := expldb_mocks.NewMockAdder(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	adderMock := webhook_mocks.NewMockAdder(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewAddHandler(adderMock, entryStringerMock, 50, 50)
 

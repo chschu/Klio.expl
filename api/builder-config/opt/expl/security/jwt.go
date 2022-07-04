@@ -8,16 +8,12 @@ import (
 	"time"
 )
 
-type JwtGenerator interface {
-	Generate(subject string, expiresAt time.Time) (jwtStr string, err error)
+func NewJWTGenerator(method jwt.SigningMethod, generationKey any) *jwtGenerator {
+	return &jwtGenerator{method: method, key: generationKey}
 }
 
-type JwtValidator interface {
-	Validate(jwtStr string) (subject string, err error)
-}
-
-func NewJwtHandlers(method jwt.SigningMethod, generationKey any, validationKey any) (JwtGenerator, JwtValidator) {
-	return &jwtGenerator{method: method, key: generationKey}, &jwtValidator{method: method, key: validationKey}
+func NewJWTValidator(method jwt.SigningMethod, validationKey any) *jwtValidator {
+	return &jwtValidator{method: method, key: validationKey}
 }
 
 type jwtGenerator struct {

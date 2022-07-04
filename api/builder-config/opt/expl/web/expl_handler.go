@@ -2,16 +2,19 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"klio/expl/expldb"
-	"klio/expl/security"
 	"klio/expl/types"
 	"net/http"
 )
 
-func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, entryStringer types.EntryStringer) http.Handler {
+type Explainer interface {
+	Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
+}
+
+func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryStringer EntryStringer) *explHandler {
 	return &explHandler{
 		edb:           edb,
 		jwtValidator:  jwtValidate,
@@ -20,9 +23,9 @@ func NewExplHandler(edb expldb.Explainer, jwtValidate security.JwtValidator, ent
 }
 
 type explHandler struct {
-	edb           expldb.Explainer
-	jwtValidator  security.JwtValidator
-	entryStringer types.EntryStringer
+	edb           Explainer
+	jwtValidator  JwtValidator
+	entryStringer EntryStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

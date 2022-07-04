@@ -4,43 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/jmoiron/sqlx"
-	"io"
 	"klio/expl/types"
 	"time"
 )
 
-type Adder interface {
-	Add(ctx context.Context, key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error)
-}
-
-type Explainer interface {
-	Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
-	ExplainWithLimit(ctx context.Context, key string, indexSpec types.IndexSpec, limit int) (entries []types.Entry, total int, err error)
-}
-
-type Deleter interface {
-	Delete(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
-}
-
-type Finder interface {
-	Find(ctx context.Context, rex string) (entries []types.Entry, err error)
-	FindWithLimit(ctx context.Context, rex string, limit int) (entries []types.Entry, total int, err error)
-}
-
-type Topper interface {
-	Top(ctx context.Context, count int) (entries []types.Entry, err error)
-}
-
-type ExplDB interface {
-	io.Closer
-	Adder
-	Explainer
-	Deleter
-	Finder
-	Topper
-}
-
-func NewExplDB(databaseURL string) (ExplDB, error) {
+func NewExplDB(databaseURL string) (*explDB, error) {
 	db, err := sqlx.Open("postgres", databaseURL)
 	if err != nil {
 		return nil, err

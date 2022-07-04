@@ -6,13 +6,7 @@ import (
 	"strconv"
 )
 
-type IndexSpecParser interface {
-	ParseIndexSpec(s string) (IndexSpec, error)
-	ParseIndexRange(s string) (IndexRange, error)
-	ParseIndex(s string) (Index, error)
-}
-
-func NewIndexSpecParser() IndexSpecParser {
+func NewIndexSpecParser() *indexSpecParser {
 	return &indexSpecParser{}
 }
 

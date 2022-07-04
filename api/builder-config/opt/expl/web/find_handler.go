@@ -2,16 +2,20 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"klio/expl/expldb"
-	"klio/expl/security"
 	"klio/expl/types"
 	"net/http"
 )
 
-func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entryStringer types.EntryStringer) http.Handler {
+type Finder interface {
+	Find(ctx context.Context, rex string) (entries []types.Entry, err error)
+}
+
+func NewFindHandler(edb Finder, jwtValidator JwtValidator, entryStringer EntryStringer) *findHandler {
 	return &findHandler{
 		edb:           edb,
 		jwtValidator:  jwtValidator,
@@ -20,9 +24,9 @@ func NewFindHandler(edb expldb.Finder, jwtValidator security.JwtValidator, entry
 }
 
 type findHandler struct {
-	edb           expldb.Finder
-	jwtValidator  security.JwtValidator
-	entryStringer types.EntryStringer
+	edb           Finder
+	jwtValidator  JwtValidator
+	entryStringer EntryStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

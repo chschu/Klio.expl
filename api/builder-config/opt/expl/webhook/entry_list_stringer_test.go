@@ -4,8 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/security_mocks"
-	"klio/expl/generated/types_mocks"
+	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"math/rand"
@@ -16,8 +15,8 @@ import (
 
 func Test_EntryListStringer_String_OneResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	jwtGeneratorMock := webhook_mocks.NewMockJwtGenerator(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
 
@@ -36,8 +35,8 @@ func Test_EntryListStringer_String_OneResult(t *testing.T) {
 
 func Test_EntryListStringer_String_MultipleResults(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	jwtGeneratorMock := webhook_mocks.NewMockJwtGenerator(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
 
@@ -60,8 +59,8 @@ func Test_EntryListStringer_String_MultipleResults(t *testing.T) {
 
 func Test_EntryListStringer_String_IncompleteResults(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := security_mocks.NewMockJwtGenerator(ctrl)
-	entryStringerMock := types_mocks.NewMockEntryStringer(ctrl)
+	jwtGeneratorMock := webhook_mocks.NewMockJwtGenerator(ctrl)
+	entryStringerMock := webhook_mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
 

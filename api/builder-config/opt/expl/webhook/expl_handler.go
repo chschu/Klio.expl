@@ -1,16 +1,23 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
-	"klio/expl/expldb"
-	"klio/expl/security"
 	"klio/expl/types"
 	"net/http"
 	"regexp"
 	"time"
 )
 
-func NewExplHandler(edb expldb.Explainer, indexSpecParser types.IndexSpecParser, entryListStringer EntryListStringer, maxImmediateResults int, webUrlPathPrefix string, webUrlValidity time.Duration) Handler {
+type IndexSpecParser interface {
+	ParseIndexSpec(s string) (types.IndexSpec, error)
+}
+
+type LimitedExplainer interface {
+	ExplainWithLimit(ctx context.Context, key string, indexSpec types.IndexSpec, limit int) (entries []types.Entry, total int, err error)
+}
+
+func NewExplHandler(edb LimitedExplainer, indexSpecParser IndexSpecParser, entryListStringer EntryListStringer, maxImmediateResults int, webUrlPathPrefix string, webUrlValidity time.Duration) *explHandler {
 	return &explHandler{
 		edb:                 edb,
 		entryListStringer:   entryListStringer,
@@ -22,9 +29,8 @@ func NewExplHandler(edb expldb.Explainer, indexSpecParser types.IndexSpecParser,
 }
 
 type explHandler struct {
-	edb               expldb.Explainer
-	indexSpecParser   types.IndexSpecParser
-	jwtGenerator      security.JwtGenerator
+	edb               LimitedExplainer
+	indexSpecParser   IndexSpecParser
 	entryListStringer EntryListStringer
 
 	maxImmediateResults int
