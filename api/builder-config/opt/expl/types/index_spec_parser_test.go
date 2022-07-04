@@ -21,9 +21,9 @@ func Test_IndexSpecParser_ParseIndexSpec_NonEmpty(t *testing.T) {
 	result, err := sut.ParseIndexSpec(" 4:-9  p3   p14:13 ")
 
 	expectedIndexSpec := types.NewIndexSpec(
-		types.NewIndexRange(types.HeadIndex(4), types.TailIndex(9)),
-		types.NewIndexRange(types.PermanentIndex(3), types.PermanentIndex(3)),
-		types.NewIndexRange(types.PermanentIndex(14), types.HeadIndex(13)),
+		types.NewIndexRange(types.NewHeadIndex(4), types.NewTailIndex(9)),
+		types.NewIndexRange(types.NewPermanentIndex(3), types.NewPermanentIndex(3)),
+		types.NewIndexRange(types.NewPermanentIndex(14), types.NewHeadIndex(13)),
 	)
 
 	assert.NoError(t, err)
@@ -44,7 +44,7 @@ func Test_IndexSpecParser_ParseIndexRange_Single(t *testing.T) {
 	result, err := sut.ParseIndexRange("   42  ")
 
 	assert.NoError(t, err)
-	assert.Equal(t, types.NewIndexRange(types.HeadIndex(42), types.HeadIndex(42)), result)
+	assert.Equal(t, types.NewIndexRange(types.NewHeadIndex(42), types.NewHeadIndex(42)), result)
 }
 
 func Test_IndexSpecParser_ParseIndexRange_Range(t *testing.T) {
@@ -53,7 +53,7 @@ func Test_IndexSpecParser_ParseIndexRange_Range(t *testing.T) {
 	result, err := sut.ParseIndexRange("  -17:p3 ")
 
 	assert.NoError(t, err)
-	assert.Equal(t, types.NewIndexRange(types.TailIndex(17), types.PermanentIndex(3)), result)
+	assert.Equal(t, types.NewIndexRange(types.NewTailIndex(17), types.NewPermanentIndex(3)), result)
 }
 
 func Test_IndexSpecParser_ParseIndexRange_Invalid(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_IndexSpecParser_ParseIndex_HeadIndex(t *testing.T) {
 	result, err := sut.ParseIndex("  4294967295 ")
 
 	assert.NoError(t, err)
-	assert.Equal(t, types.HeadIndex(4294967295), result)
+	assert.Equal(t, types.NewHeadIndex(4294967295), result)
 }
 
 func Test_IndexSpecParser_ParseIndex_TailIndex(t *testing.T) {
@@ -95,7 +95,7 @@ func Test_IndexSpecParser_ParseIndex_TailIndex(t *testing.T) {
 	result, err := sut.ParseIndex("  -123 ")
 
 	assert.NoError(t, err)
-	assert.Equal(t, types.TailIndex(123), result)
+	assert.Equal(t, types.NewTailIndex(123), result)
 }
 
 func Test_IndexSpecParser_ParseIndex_PermanentIndex(t *testing.T) {
@@ -104,7 +104,7 @@ func Test_IndexSpecParser_ParseIndex_PermanentIndex(t *testing.T) {
 	result, err := sut.ParseIndex("  p2 ")
 
 	assert.NoError(t, err)
-	assert.Equal(t, types.PermanentIndex(2), result)
+	assert.Equal(t, types.NewPermanentIndex(2), result)
 }
 
 func Test_IndexSpecParser_ParseIndex_Invalid(t *testing.T) {

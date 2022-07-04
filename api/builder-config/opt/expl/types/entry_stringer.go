@@ -36,5 +36,5 @@ func (s *entryStringer) String(e *Entry) string {
 		metadataText = " (" + strings.Join(metadata, ", ") + ")"
 	}
 
-	return fmt.Sprintf("%s[%s/%s]: %s%s", e.Key, e.HeadIndex, e.PermanentIndex, text, metadataText)
+	return fmt.Sprintf("%s[%s/%s]: %s%s", e.Key, NewHeadIndex(e.HeadIndex), NewPermanentIndex(e.PermanentIndex), text, metadataText)
 }

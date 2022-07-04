@@ -11,7 +11,7 @@ type Entry struct {
 	Value          string         `db:"value"`
 	CreatedBy      sql.NullString `db:"created_by"`
 	CreatedAt      sql.NullTime   `db:"created_at"`
-	HeadIndex      HeadIndex      `db:"head_index"`
-	TailIndex      TailIndex      `db:"tail_index"`
-	PermanentIndex PermanentIndex `db:"permanent_index"`
+	HeadIndex      uint           `db:"head_index"`
+	TailIndex      uint           `db:"tail_index"`
+	PermanentIndex uint           `db:"permanent_index"`
 }

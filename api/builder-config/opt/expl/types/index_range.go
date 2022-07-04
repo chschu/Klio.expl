@@ -1,44 +1,27 @@
 package types
 
-import "fmt"
-
-type IndexRange interface {
-	fmt.Stringer
-	From() Index
-	To() Index
-	SqlCondition() (sqlCondition string, params []any)
-}
-
 func NewIndexRange(from Index, to Index) IndexRange {
-	return &indexRange{
+	return IndexRange{
 		from: from,
 		to:   to,
 	}
 }
 
-type indexRange struct {
+type IndexRange struct {
 	from Index
 	to   Index
 }
 
-func (ir *indexRange) From() Index {
-	return ir.from
-}
-
-func (ir *indexRange) To() Index {
-	return ir.to
-}
-
-func (ir *indexRange) SqlCondition() (sqlCondition string, params []any) {
+func (ir IndexRange) SQLCondition() (sqlCondition string, params []any) {
 	if ir.from == ir.to {
-		return ir.from.SqlCondition(IndexMatching)
+		return ir.from.SQLConditionMatching()
 	}
-	fromSql, fromParams := ir.from.SqlCondition(IndexStartingWith)
-	toSql, toParams := ir.to.SqlCondition(IndexEndingWith)
+	fromSql, fromParams := ir.from.SQLConditionStartingWith()
+	toSql, toParams := ir.to.SQLConditionEndingWith()
 	return "(" + fromSql + ") AND (" + toSql + ")", append(fromParams, toParams...)
 }
 
-func (ir *indexRange) String() string {
+func (ir IndexRange) String() string {
 	if ir.from == ir.to {
 		return ir.from.String()
 	}

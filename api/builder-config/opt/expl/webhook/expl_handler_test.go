@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/types_mocks"
 	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
@@ -17,7 +16,7 @@ import (
 func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
+	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
 	maxImmediateResults := 3919283
@@ -35,14 +34,13 @@ func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 
 	now := time.Now()
 
+	indexSpec := types.IndexSpecSingle(types.NewHeadIndex(3812934))
 	entries := []types.Entry{{Id: rand.Int31()}, {Id: rand.Int31()}}
 	total := 8492193
 	resultText := "result text"
 
-	indexSpecMock := types_mocks.NewMockIndexSpec(ctrl)
-
-	indexSpecParserMock.EXPECT().ParseIndexSpec("index-spec-string").Return(indexSpecMock, nil)
-	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", indexSpecMock, maxImmediateResults).Return(entries, total, nil)
+	indexSpecParserMock.EXPECT().ParseIndexSpec("index-spec-string").Return(indexSpec, nil)
+	explainerMock.EXPECT().ExplainWithLimit(ctx, "test-key", indexSpec, maxImmediateResults).Return(entries, total, nil)
 	entryListStringerMock.EXPECT().String(entries, total, "test-key", webUrlPathPrefix, now.Add(webUrlValidity), req).Return(resultText)
 
 	out, err := sut.Handle(in, req, now)
@@ -53,7 +51,7 @@ func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
+	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
 	maxImmediateResults := 3919283
@@ -86,7 +84,7 @@ func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 func Test_ExplHandler_Expl_SoftFail_InvalidSyntax(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := types_mocks.NewMockIndexSpecParser(ctrl)
+	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
 	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
 
 	sut := webhook.NewExplHandler(explainerMock, indexSpecParserMock, entryListStringerMock, 50, "/dummy/", time.Minute)

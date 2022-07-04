@@ -1,41 +1,33 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 )
 
-type IndexSpec interface {
-	fmt.Stringer
-	SqlCondition() (sqlCondition string, params []any)
+type IndexSpec struct {
+	ranges []IndexRange
 }
 
-func NewIndexSpec(r ...IndexRange) IndexSpec {
-	return indexSpec(r)
+func NewIndexSpec(ranges ...IndexRange) IndexSpec {
+	return IndexSpec{
+		ranges: ranges,
+	}
 }
 
 func IndexSpecAll() IndexSpec {
-	return indexSpec([]IndexRange{&indexRange{
-		from: HeadIndex(1),
-		to:   TailIndex(1),
-	}})
+	return NewIndexSpec(NewIndexRange(NewHeadIndex(1), NewTailIndex(1)))
 }
 
 func IndexSpecSingle(index Index) IndexSpec {
-	return indexSpec([]IndexRange{&indexRange{
-		from: index,
-		to:   index,
-	}})
+	return NewIndexSpec(NewIndexRange(index, index))
 }
 
-type indexSpec []IndexRange
-
-func (is indexSpec) SqlCondition() (sqlCondition string, params []any) {
+func (is IndexSpec) SQLCondition() (sqlCondition string, params []any) {
 	sb := strings.Builder{}
 	sb.WriteString("false")
 	params = []any{}
-	for _, ir := range is {
-		indexRangeSql, indexRangeParams := ir.SqlCondition()
+	for _, ir := range is.ranges {
+		indexRangeSql, indexRangeParams := ir.SQLCondition()
 		sb.WriteString(" OR (")
 		sb.WriteString(indexRangeSql)
 		sb.WriteRune(')')
@@ -44,10 +36,10 @@ func (is indexSpec) SqlCondition() (sqlCondition string, params []any) {
 	return sb.String(), params
 }
 
-func (is indexSpec) String() string {
+func (is IndexSpec) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("")
-	for _, ir := range is {
+	for _, ir := range is.ranges {
 		sb.WriteString(ir.String())
 		sb.WriteRune(' ')
 	}

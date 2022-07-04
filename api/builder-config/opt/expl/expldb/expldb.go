@@ -44,7 +44,7 @@ func (e *explDB) Add(ctx context.Context, key string, value string, createdBy st
 }
 
 func (e *explDB) Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
-	irc, params := indexSpec.SqlCondition()
+	irc, params := indexSpec.SQLCondition()
 	sql := "SELECT * FROM entry WHERE (" + irc + ") AND key_normalized = NORMALIZE(LOWER(?), NFC) ORDER BY id"
 	params = append(params, key)
 	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), params...)
@@ -60,7 +60,7 @@ func (e *explDB) ExplainWithLimit(ctx context.Context, key string, indexSpec typ
 		return nil, 0, errors.New("limit must be greater than zero")
 	}
 
-	irc, params := indexSpec.SqlCondition()
+	irc, params := indexSpec.SQLCondition()
 	sql := "SELECT * FROM (SELECT *, COUNT(*) OVER() total FROM entry WHERE (" + irc +
 		") AND key_normalized = NORMALIZE(LOWER(?), NFC) ORDER BY id DESC LIMIT ?) x ORDER BY id"
 	params = append(params, key, limit)
@@ -83,7 +83,7 @@ func (e *explDB) ExplainWithLimit(ctx context.Context, key string, indexSpec typ
 }
 
 func (e *explDB) Delete(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
-	irc, params := indexSpec.SqlCondition()
+	irc, params := indexSpec.SQLCondition()
 	sql := "DELETE FROM entry WHERE (" + irc + ") AND key_normalized = NORMALIZE(LOWER(?), NFC) RETURNING *"
 	params = append(params, key)
 	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), params...)

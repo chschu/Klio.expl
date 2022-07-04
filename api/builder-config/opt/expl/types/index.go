@@ -1,58 +1,71 @@
 package types
 
-import "fmt"
-
-type Index interface {
-	fmt.Stringer
-	SqlCondition(cmp IndexComparison) (sqlCondition string, params []any)
-}
-
-type IndexComparison int
-
-const (
-	IndexStartingWith IndexComparison = iota
-	IndexMatching
-	IndexEndingWith
+import (
+	"fmt"
 )
 
-var ascendingIndexComparisonOperator = map[IndexComparison]string{
-	IndexStartingWith: ">=",
-	IndexMatching:     "=",
-	IndexEndingWith:   "<=",
+type Index struct {
+	sqlColumn    string
+	sqlAscending bool
+	value        uint
+	prefix       string
 }
 
-var descendingIndexComparisonOperator = map[IndexComparison]string{
-	IndexStartingWith: "<=",
-	IndexMatching:     "=",
-	IndexEndingWith:   ">=",
+func NewHeadIndex(n uint) Index {
+	return Index{
+		sqlColumn:    "head_index",
+		sqlAscending: true,
+		value:        n,
+		prefix:       "",
+	}
 }
 
-type HeadIndex uint
-
-func (i HeadIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "head_index " + ascendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
+func NewTailIndex(n uint) Index {
+	return Index{
+		sqlColumn:    "tail_index",
+		sqlAscending: false,
+		value:        n,
+		prefix:       "-",
+	}
 }
 
-func (i HeadIndex) String() string {
-	return fmt.Sprintf("%d", i)
+func NewPermanentIndex(n uint) Index {
+	return Index{
+		sqlColumn:    "permanent_index",
+		sqlAscending: true,
+		value:        n,
+		prefix:       "p",
+	}
 }
 
-type TailIndex uint
-
-func (i TailIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "tail_index " + descendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
+func (i Index) SQLConditionStartingWith() (sqlCondition string, params []any) {
+	var sqlOp string
+	if i.sqlAscending {
+		sqlOp = ">="
+	} else {
+		sqlOp = "<="
+	}
+	return i.sqlCondition(sqlOp)
 }
 
-func (i TailIndex) String() string {
-	return fmt.Sprintf("-%d", i)
+func (i Index) SQLConditionMatching() (sqlCondition string, params []any) {
+	return i.sqlCondition("=")
 }
 
-type PermanentIndex uint
-
-func (i PermanentIndex) SqlCondition(cmp IndexComparison) (string, []any) {
-	return "permanent_index " + ascendingIndexComparisonOperator[cmp] + " ?", []any{uint(i)}
+func (i Index) SQLConditionEndingWith() (sqlCondition string, params []any) {
+	var sqlOp string
+	if i.sqlAscending {
+		sqlOp = "<="
+	} else {
+		sqlOp = ">="
+	}
+	return i.sqlCondition(sqlOp)
 }
 
-func (i PermanentIndex) String() string {
-	return fmt.Sprintf("p%d", i)
+func (i Index) sqlCondition(sqlOp string) (sqlCondition string, params []any) {
+	return fmt.Sprintf("%s %s ?", i.sqlColumn, sqlOp), []any{i.value}
+}
+
+func (i Index) String() string {
+	return fmt.Sprintf("%s%d", i.prefix, i.value)
 }
