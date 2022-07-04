@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source find_handler.go -destination generated/mocks/find_handler.go -package mocks
+
 type LimitedFinder interface {
 	FindWithLimit(ctx context.Context, rex string, limit int) (entries []types.Entry, total int, err error)
 }

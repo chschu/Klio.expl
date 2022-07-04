@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/generated/webhook_mocks"
 	"klio/expl/types"
 	"klio/expl/webhook"
+	"klio/expl/webhook/generated/mocks"
 	"math/rand"
 	"net/http/httptest"
 	"testing"
@@ -15,9 +15,9 @@ import (
 
 func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
-	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
+	explainerMock := mocks.NewMockLimitedExplainer(ctrl)
+	indexSpecParserMock := mocks.NewMockIndexSpecParser(ctrl)
+	entryListStringerMock := mocks.NewMockEntryListStringer(ctrl)
 
 	maxImmediateResults := 3919283
 	webUrlPathPrefix := "/web-expl-prefix/"
@@ -50,9 +50,9 @@ func Test_ExplHandler_Expl_Success_WithIndexSpec(t *testing.T) {
 
 func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
-	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
+	explainerMock := mocks.NewMockLimitedExplainer(ctrl)
+	indexSpecParserMock := mocks.NewMockIndexSpecParser(ctrl)
+	entryListStringerMock := mocks.NewMockEntryListStringer(ctrl)
 
 	maxImmediateResults := 3919283
 	webUrlPathPrefix := "/web-expl-prefix/"
@@ -83,9 +83,9 @@ func Test_ExplHandler_Expl_Success_WithoutIndexSpec(t *testing.T) {
 
 func Test_ExplHandler_Expl_SoftFail_InvalidSyntax(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	explainerMock := webhook_mocks.NewMockLimitedExplainer(ctrl)
-	indexSpecParserMock := webhook_mocks.NewMockIndexSpecParser(ctrl)
-	entryListStringerMock := webhook_mocks.NewMockEntryListStringer(ctrl)
+	explainerMock := mocks.NewMockLimitedExplainer(ctrl)
+	indexSpecParserMock := mocks.NewMockIndexSpecParser(ctrl)
+	entryListStringerMock := mocks.NewMockEntryListStringer(ctrl)
 
 	sut := webhook.NewExplHandler(explainerMock, indexSpecParserMock, entryListStringerMock, 50, "/dummy/", time.Minute)
 

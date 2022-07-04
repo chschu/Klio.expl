@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source interfaces.go -destination generated/mocks/interfaces.go -package mocks
+
 type EntryStringer interface {
 	String(entry *types.Entry) string
 }

@@ -2,4 +2,4 @@
 /expl
 
 # files produced by //go:generate
-/generated/
+generated/

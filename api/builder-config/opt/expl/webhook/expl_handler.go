@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source expl_handler.go -destination generated/mocks/expl_handler.go -package mocks
+
 type IndexSpecParser interface {
 	ParseIndexSpec(s string) (types.IndexSpec, error)
 }

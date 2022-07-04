@@ -10,6 +10,8 @@ import (
 	"unicode/utf16"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source add_handler.go -destination generated/mocks/add_handler.go -package mocks
+
 type Adder interface {
 	Add(ctx context.Context, key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error)
 }
