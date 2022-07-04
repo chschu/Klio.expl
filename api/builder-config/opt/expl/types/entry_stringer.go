@@ -11,11 +11,6 @@ type EntryStringer interface {
 	String(entry *Entry) string
 }
 
-type EntryStringerSettings interface {
-	EntryToStringTimeFormat() string
-	EntryToStringLocation() *time.Location
-}
-
 func NewEntryStringer(timeFormat string, timeLocation *time.Location) EntryStringer {
 	return &entryStringer{
 		timeFormat:   timeFormat,
