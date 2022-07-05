@@ -43,11 +43,9 @@ func (e *explDB) Add(ctx context.Context, key string, value string, createdBy st
 	return entry, nil
 }
 
-func (e *explDB) Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
-	irc, params := indexSpec.SQLCondition()
-	sql := "SELECT * FROM entry WHERE (" + irc + ") AND key_normalized = NORMALIZE(LOWER(?), NFC) ORDER BY id"
-	params = append(params, key)
-	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), params...)
+func (e *explDB) Explain(ctx context.Context, key string) (entries []types.Entry, err error) {
+	sql := "SELECT * FROM entry WHERE key_normalized = NORMALIZE(LOWER(?), NFC) ORDER BY id"
+	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), key)
 	if err != nil {
 		return nil, err
 	}

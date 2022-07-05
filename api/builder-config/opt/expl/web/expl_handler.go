@@ -10,7 +10,7 @@ import (
 )
 
 type Explainer interface {
-	Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
+	Explain(ctx context.Context, key string) (entries []types.Entry, err error)
 }
 
 func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryListStringer EntryListStringer) *explHandler {
@@ -37,7 +37,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries, err := e.edb.Explain(r.Context(), key, types.IndexSpecAll())
+	entries, err := e.edb.Explain(r.Context(), key)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error accessing entries: %v", err)
