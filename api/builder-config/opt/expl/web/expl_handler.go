@@ -1,11 +1,10 @@
 package web
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"io"
 	"klio/expl/types"
 	"net/http"
 )
@@ -14,18 +13,18 @@ type Explainer interface {
 	Explain(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error)
 }
 
-func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryStringer EntryStringer) *explHandler {
+func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryListStringer EntryListStringer) *explHandler {
 	return &explHandler{
-		edb:           edb,
-		jwtValidator:  jwtValidate,
-		entryStringer: entryStringer,
+		edb:               edb,
+		jwtValidator:      jwtValidate,
+		entryListStringer: entryListStringer,
 	}
 }
 
 type explHandler struct {
-	edb           Explainer
-	jwtValidator  JwtValidator
-	entryStringer EntryStringer
+	edb               Explainer
+	jwtValidator      JwtValidator
+	entryListStringer EntryListStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -45,23 +44,6 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count := len(entries)
-
-	var buf bytes.Buffer
-	if count == 0 {
-		buf.WriteString("Ich habe leider keinen Eintrag gefunden.\n")
-	} else {
-		if count == 1 {
-			buf.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
-		} else {
-			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
-		}
-		for _, entry := range entries {
-			buf.WriteString(e.entryStringer.String(&entry))
-			buf.WriteRune('\n')
-		}
-	}
-
 	h := w.Header()
 	h.Set("Content-Type", "text/plain; charset=UTF-8")
 	h.Set("X-Content-Type-Options", "nosniff")
@@ -69,7 +51,7 @@ func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Set("Expires", "0")
 	h.Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
 
-	_, err = buf.WriteTo(w)
+	_, err = io.WriteString(w, e.entryListStringer.String(entries))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error writing response: %v", err)

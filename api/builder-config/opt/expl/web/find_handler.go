@@ -1,11 +1,10 @@
 package web
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"io"
 	"klio/expl/expldb"
 	"klio/expl/types"
 	"net/http"
@@ -15,18 +14,18 @@ type Finder interface {
 	Find(ctx context.Context, rex string) (entries []types.Entry, err error)
 }
 
-func NewFindHandler(edb Finder, jwtValidator JwtValidator, entryStringer EntryStringer) *findHandler {
+func NewFindHandler(edb Finder, jwtValidator JwtValidator, entryListStringer EntryListStringer) *findHandler {
 	return &findHandler{
-		edb:           edb,
-		jwtValidator:  jwtValidator,
-		entryStringer: entryStringer,
+		edb:               edb,
+		jwtValidator:      jwtValidator,
+		entryListStringer: entryListStringer,
 	}
 }
 
 type findHandler struct {
-	edb           Finder
-	jwtValidator  JwtValidator
-	entryStringer EntryStringer
+	edb               Finder
+	jwtValidator      JwtValidator
+	entryListStringer EntryListStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -46,23 +45,6 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count := len(entries)
-
-	var buf bytes.Buffer
-	if count == 0 {
-		buf.WriteString("Ich habe leider keinen Eintrag gefunden.\n")
-	} else {
-		if count == 1 {
-			buf.WriteString("Ich habe den folgenden Eintrag gefunden:\n")
-		} else {
-			buf.WriteString(fmt.Sprintf("Ich habe die folgenden %d Einträge gefunden:\n", count))
-		}
-		for _, entry := range entries {
-			buf.WriteString(f.entryStringer.String(&entry))
-			buf.WriteRune('\n')
-		}
-	}
-
 	h := w.Header()
 	h.Set("Content-Type", "text/plain; charset=UTF-8")
 	h.Set("X-Content-Type-Options", "nosniff")
@@ -70,7 +52,7 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Set("Expires", "0")
 	h.Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
 
-	_, err = buf.WriteTo(w)
+	_, err = io.WriteString(w, f.entryListStringer.String(entries))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error writing response: %v", err)
