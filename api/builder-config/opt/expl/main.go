@@ -50,7 +50,7 @@ func main() {
 
 	useProxyHeaders := mustParseBool(mustLookupEnv("USE_PROXY_HEADERS"))
 	webChain := compose(timeoutAdapter(s.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
-	webhookChain := compose(webChain, webhook.ToHttpHandler)
+	webhookChain := compose(webChain, webhook.ToHTTPHandler)
 
 	jwtExtractor := JWTExtractorFunc(func(r *http.Request) string {
 		return mux.Vars(r)["jwt"]

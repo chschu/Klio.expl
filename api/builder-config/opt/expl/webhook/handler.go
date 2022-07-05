@@ -29,7 +29,7 @@ func RequiredTokenAdapter(token string) func(handler Handler) Handler {
 	}
 }
 
-func ToHttpHandler(handler Handler) http.Handler {
+func ToHTTPHandler(handler Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		in := Request{}
 		err := json.NewDecoder(r.Body).Decode(&in)
