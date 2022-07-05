@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"io"
 	"klio/expl/expldb"
@@ -14,9 +13,10 @@ type Finder interface {
 	Find(ctx context.Context, rex string) (entries []types.Entry, err error)
 }
 
-func NewFindHandler(edb Finder, jwtValidator JWTValidator, entryListStringer EntryListStringer) *findHandler {
+func NewFindHandler(edb Finder, jwtExtractor JWTExtractor, jwtValidator JWTValidator, entryListStringer EntryListStringer) *findHandler {
 	return &findHandler{
 		edb:               edb,
+		jwtExtractor:      jwtExtractor,
 		jwtValidator:      jwtValidator,
 		entryListStringer: entryListStringer,
 	}
@@ -24,12 +24,13 @@ func NewFindHandler(edb Finder, jwtValidator JWTValidator, entryListStringer Ent
 
 type findHandler struct {
 	edb               Finder
+	jwtExtractor      JWTExtractor
 	jwtValidator      JWTValidator
 	entryListStringer EntryListStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	jwtStr := mux.Vars(r)["jwt"]
+	jwtStr := f.jwtExtractor.ExtractJWT(r)
 
 	rex, err := f.jwtValidator.ValidateJWT(jwtStr)
 	if err != nil {

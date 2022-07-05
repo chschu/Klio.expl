@@ -52,6 +52,10 @@ func main() {
 	webChain := compose(timeoutAdapter(s.HandlerTimeout()), proxyHeaderAdapter(useProxyHeaders))
 	webhookChain := compose(webChain, webhook.ToHttpHandler)
 
+	jwtExtractor := JWTExtractorFunc(func(r *http.Request) string {
+		return mux.Vars(r)["jwt"]
+	})
+
 	indexSpecParser := types.NewIndexSpecParser()
 	entryStringer := types.NewEntryStringer(s.EntryToStringTimeFormat(), s.EntryToStringLocation())
 	entryListStringer := webhook.NewEntryListStringer(jwtGenerator, entryStringer)
@@ -62,8 +66,8 @@ func main() {
 	delHandler := webhook.NewDelHandler(edb, indexSpecParser, entryStringer)
 	findHandler := webhook.NewFindHandler(edb, entryListStringer, s.MaxFindCount(), "/find/", s.FindTokenValidity())
 	topHandler := webhook.NewTopHandler(edb, s.MaxTopCount())
-	webExplHandler := web.NewExplHandler(edb, jwtValidator, webEntryListStringer)
-	webFindHandler := web.NewFindHandler(edb, jwtValidator, webEntryListStringer)
+	webExplHandler := web.NewExplHandler(edb, jwtExtractor, jwtValidator, webEntryListStringer)
+	webFindHandler := web.NewFindHandler(edb, jwtExtractor, jwtValidator, webEntryListStringer)
 
 	r := mux.NewRouter()
 	r.Handle("/api/add", compose(webhookChain, requiredTokenEnvAdapter("WEBHOOK_TOKEN_ADD"))(addHandler))
@@ -81,6 +85,12 @@ func main() {
 	}
 
 	logrus.Info("Shutting down")
+}
+
+type JWTExtractorFunc func(r *http.Request) string
+
+func (f JWTExtractorFunc) ExtractJWT(r *http.Request) string {
+	return f(r)
 }
 
 func proxyHeaderAdapter(useProxyHeaders bool) func(http.Handler) http.Handler {

@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"io"
 	"klio/expl/types"
@@ -13,22 +12,24 @@ type Explainer interface {
 	Explain(ctx context.Context, key string) (entries []types.Entry, err error)
 }
 
-func NewExplHandler(edb Explainer, jwtValidate JWTValidator, entryListStringer EntryListStringer) *explHandler {
+func NewExplHandler(edb Explainer, jwtExtractor JWTExtractor, jwtValidator JWTValidator, entryListStringer EntryListStringer) *explHandler {
 	return &explHandler{
 		edb:               edb,
-		jwtValidator:      jwtValidate,
+		jwtExtractor:      jwtExtractor,
+		jwtValidator:      jwtValidator,
 		entryListStringer: entryListStringer,
 	}
 }
 
 type explHandler struct {
 	edb               Explainer
+	jwtExtractor      JWTExtractor
 	jwtValidator      JWTValidator
 	entryListStringer EntryListStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	jwtStr := mux.Vars(r)["jwt"]
+	jwtStr := e.jwtExtractor.ExtractJWT(r)
 
 	key, err := e.jwtValidator.ValidateJWT(jwtStr)
 	if err != nil {

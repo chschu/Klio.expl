@@ -1,6 +1,9 @@
 package web
 
-import "klio/expl/types"
+import (
+	"klio/expl/types"
+	"net/http"
+)
 
 //go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source interfaces.go -destination generated/mocks/interfaces.go -package mocks
 
@@ -14,4 +17,8 @@ type EntryListStringer interface {
 
 type JWTValidator interface {
 	ValidateJWT(jwtStr string) (subject string, err error)
+}
+
+type JWTExtractor interface {
+	ExtractJWT(r *http.Request) string
 }
