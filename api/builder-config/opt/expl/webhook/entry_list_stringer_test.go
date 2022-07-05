@@ -13,6 +13,20 @@ import (
 	"time"
 )
 
+func Test_EntryListStringer_String_NoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
+	entryStringerMock := mocks.NewMockEntryStringer(ctrl)
+
+	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
+
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
+
+	text := sut.String([]types.Entry{}, 0, "dummy", "/dummy/", time.Now(), req)
+
+	assert.Equal(t, "Ich habe leider keinen Eintrag gefunden.", text)
+}
+
 func Test_EntryListStringer_String_OneResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
