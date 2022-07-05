@@ -12,6 +12,6 @@ type EntryListStringer interface {
 	String(entries []types.Entry) string
 }
 
-type JwtValidator interface {
-	Validate(jwtStr string) (subject string, err error)
+type JWTValidator interface {
+	ValidateJWT(jwtStr string) (subject string, err error)
 }

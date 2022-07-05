@@ -16,6 +16,6 @@ type EntryListStringer interface {
 	String(entries []types.Entry, total int, subject string, webUrlPathPrefix string, webUrlExpiresAt time.Time, req *http.Request) string
 }
 
-type JwtGenerator interface {
-	Generate(subject string, expiresAt time.Time) (jwtStr string, err error)
+type JWTGenerator interface {
+	GenerateJWT(subject string, expiresAt time.Time) (jwtStr string, err error)
 }

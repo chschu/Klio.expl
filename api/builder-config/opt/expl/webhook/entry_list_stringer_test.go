@@ -15,7 +15,7 @@ import (
 
 func Test_EntryListStringer_String_NoResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
+	jwtGeneratorMock := mocks.NewMockJWTGenerator(ctrl)
 	entryStringerMock := mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
@@ -29,7 +29,7 @@ func Test_EntryListStringer_String_NoResult(t *testing.T) {
 
 func Test_EntryListStringer_String_OneResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
+	jwtGeneratorMock := mocks.NewMockJWTGenerator(ctrl)
 	entryStringerMock := mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
@@ -49,7 +49,7 @@ func Test_EntryListStringer_String_OneResult(t *testing.T) {
 
 func Test_EntryListStringer_String_MultipleResults(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
+	jwtGeneratorMock := mocks.NewMockJWTGenerator(ctrl)
 	entryStringerMock := mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
@@ -73,7 +73,7 @@ func Test_EntryListStringer_String_MultipleResults(t *testing.T) {
 
 func Test_EntryListStringer_String_IncompleteResults(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	jwtGeneratorMock := mocks.NewMockJwtGenerator(ctrl)
+	jwtGeneratorMock := mocks.NewMockJWTGenerator(ctrl)
 	entryStringerMock := mocks.NewMockEntryStringer(ctrl)
 
 	sut := webhook.NewEntryListStringer(jwtGeneratorMock, entryStringerMock)
@@ -89,7 +89,7 @@ func Test_EntryListStringer_String_IncompleteResults(t *testing.T) {
 	webUrlSubject := "test-subject"
 	webUrlExpiresAt := time.Now()
 
-	jwtGeneratorMock.EXPECT().Generate(webUrlSubject, webUrlExpiresAt).Return("eyJWT", nil)
+	jwtGeneratorMock.EXPECT().GenerateJWT(webUrlSubject, webUrlExpiresAt).Return("eyJWT", nil)
 	entryStringerMock.EXPECT().String(entry1).Return(entry1String)
 	entryStringerMock.EXPECT().String(entry2).Return(entry2String)
 

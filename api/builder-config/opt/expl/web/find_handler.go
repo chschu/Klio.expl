@@ -14,7 +14,7 @@ type Finder interface {
 	Find(ctx context.Context, rex string) (entries []types.Entry, err error)
 }
 
-func NewFindHandler(edb Finder, jwtValidator JwtValidator, entryListStringer EntryListStringer) *findHandler {
+func NewFindHandler(edb Finder, jwtValidator JWTValidator, entryListStringer EntryListStringer) *findHandler {
 	return &findHandler{
 		edb:               edb,
 		jwtValidator:      jwtValidator,
@@ -24,14 +24,14 @@ func NewFindHandler(edb Finder, jwtValidator JwtValidator, entryListStringer Ent
 
 type findHandler struct {
 	edb               Finder
-	jwtValidator      JwtValidator
+	jwtValidator      JWTValidator
 	entryListStringer EntryListStringer
 }
 
 func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	jwtStr := mux.Vars(r)["jwt"]
 
-	rex, err := f.jwtValidator.Validate(jwtStr)
+	rex, err := f.jwtValidator.ValidateJWT(jwtStr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		logrus.Infof("failed to validate JWT: %v", err)

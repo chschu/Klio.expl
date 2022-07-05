@@ -13,7 +13,7 @@ type Explainer interface {
 	Explain(ctx context.Context, key string) (entries []types.Entry, err error)
 }
 
-func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryListStringer EntryListStringer) *explHandler {
+func NewExplHandler(edb Explainer, jwtValidate JWTValidator, entryListStringer EntryListStringer) *explHandler {
 	return &explHandler{
 		edb:               edb,
 		jwtValidator:      jwtValidate,
@@ -23,14 +23,14 @@ func NewExplHandler(edb Explainer, jwtValidate JwtValidator, entryListStringer E
 
 type explHandler struct {
 	edb               Explainer
-	jwtValidator      JwtValidator
+	jwtValidator      JWTValidator
 	entryListStringer EntryListStringer
 }
 
 func (e *explHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	jwtStr := mux.Vars(r)["jwt"]
 
-	key, err := e.jwtValidator.Validate(jwtStr)
+	key, err := e.jwtValidator.ValidateJWT(jwtStr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		logrus.Infof("failed to validate JWT: %v", err)

@@ -21,7 +21,7 @@ type jwtGenerator struct {
 	key    any
 }
 
-func (j *jwtGenerator) Generate(subject string, expiresAt time.Time) (string, error) {
+func (j *jwtGenerator) GenerateJWT(subject string, expiresAt time.Time) (string, error) {
 	claims := jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expiresAt),
 		Subject:   subject,
@@ -35,7 +35,7 @@ type jwtValidator struct {
 	key    any
 }
 
-func (j *jwtValidator) Validate(jwtStr string) (string, error) {
+func (j *jwtValidator) ValidateJWT(jwtStr string) (string, error) {
 	token, err := jwt.ParseWithClaims(jwtStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
 		if token.Method.Alg() != j.method.Alg() {
 			return nil, fmt.Errorf("unexpected signing algorithm: %v", token.Method.Alg())

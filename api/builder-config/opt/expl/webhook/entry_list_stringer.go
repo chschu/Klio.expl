@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func NewEntryListStringer(jwtGenerator JwtGenerator, entryStringer EntryStringer) *entryListStringer {
+func NewEntryListStringer(jwtGenerator JWTGenerator, entryStringer EntryStringer) *entryListStringer {
 	return &entryListStringer{
 		jwtGenerator:  jwtGenerator,
 		entryStringer: entryStringer,
@@ -18,7 +18,7 @@ func NewEntryListStringer(jwtGenerator JwtGenerator, entryStringer EntryStringer
 }
 
 type entryListStringer struct {
-	jwtGenerator  JwtGenerator
+	jwtGenerator  JWTGenerator
 	entryStringer EntryStringer
 }
 
@@ -66,7 +66,7 @@ func (e *entryListStringer) getWebUrl(r *http.Request, subject string, pathPrefi
 			scheme = "https"
 		}
 	}
-	jwtStr, err := e.jwtGenerator.Generate(subject, expiresAt)
+	jwtStr, err := e.jwtGenerator.GenerateJWT(subject, expiresAt)
 	if err != nil {
 		return nil, err
 	}
