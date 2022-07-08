@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 )
 
 type Index struct {
@@ -9,6 +11,33 @@ type Index struct {
 	sqlAscending bool
 	value        uint
 	prefix       string
+}
+
+func NewIndexFromString(s string) (Index, error) {
+	sep := regexp.MustCompile("^\\pZ*(?P<Prefix>|-|p)(?P<N>[1-9]\\d*)\\pZ*$")
+	match := sep.FindStringSubmatch(s)
+	if match == nil {
+		return Index{}, fmt.Errorf("invalid index: %s", s)
+	}
+	prefix := match[sep.SubexpIndex("Prefix")]
+	nStr := match[sep.SubexpIndex("N")]
+
+	n64, err := strconv.ParseUint(nStr, 10, 32)
+	if err != nil {
+		return Index{}, err
+	}
+	n := uint(n64)
+
+	switch prefix {
+	case "":
+		return NewHeadIndex(n), nil
+	case "-":
+		return NewTailIndex(n), nil
+	case "p":
+		return NewPermanentIndex(n), nil
+	}
+
+	return Index{}, fmt.Errorf("invalid index: %s", s)
 }
 
 func NewHeadIndex(n uint) Index {

@@ -6,6 +6,39 @@ import (
 	"testing"
 )
 
+func Test_NewIndexFromString_HeadIndex(t *testing.T) {
+	result, err := types.NewIndexFromString("  4294967295 ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewHeadIndex(4294967295), result)
+}
+
+func Test_NewIndexFromString_TailIndex(t *testing.T) {
+	result, err := types.NewIndexFromString("  -123 ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewTailIndex(123), result)
+}
+
+func Test_NewIndexFromString_PermanentIndex(t *testing.T) {
+	result, err := types.NewIndexFromString("  p2 ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewPermanentIndex(2), result)
+}
+
+func Test_NewIndexFromString_Invalid(t *testing.T) {
+	_, err := types.NewIndexFromString("x")
+
+	assert.Error(t, err)
+}
+
+func Test_NewIndexFromString_TooLarge(t *testing.T) {
+	_, err := types.NewIndexFromString("4294967296")
+
+	assert.Error(t, err)
+}
+
 func Test_HeadIndex_SQLConditionStartingWith(t *testing.T) {
 	sut := types.NewHeadIndex(1923781)
 

@@ -56,14 +56,15 @@ func main() {
 		return mux.Vars(r)["jwt"]
 	})
 
-	indexSpecParser := types.NewIndexSpecParser()
+	indexParser := IndexParserFunc(types.NewIndexFromString)
+	indexSpecParser := IndexSpecParserFunc(types.NewIndexSpecFromString)
 	entryStringer := types.NewEntryStringer(s.EntryToStringTimeFormat(), s.EntryToStringLocation())
 	entryListStringer := webhook.NewEntryListStringer(jwtGenerator, entryStringer)
 	webEntryListStringer := web.NewEntryListStringer(entryStringer)
 
 	addHandler := webhook.NewAddHandler(edb, entryStringer, s.MaxUTF16LengthForKey(), s.MaxUTF16LengthForValue())
 	explHandler := webhook.NewExplHandler(edb, indexSpecParser, entryListStringer, s.MaxExplCount(), "/expl/", s.ExplTokenValidity())
-	delHandler := webhook.NewDelHandler(edb, indexSpecParser, entryStringer)
+	delHandler := webhook.NewDelHandler(edb, indexParser, entryStringer)
 	findHandler := webhook.NewFindHandler(edb, entryListStringer, s.MaxFindCount(), "/find/", s.FindTokenValidity())
 	topHandler := webhook.NewTopHandler(edb, s.MaxTopCount())
 	webExplHandler := web.NewExplHandler(edb, jwtExtractor, jwtValidator, webEntryListStringer)
@@ -85,6 +86,18 @@ func main() {
 	}
 
 	logrus.Info("Shutting down")
+}
+
+type IndexParserFunc func(s string) (types.Index, error)
+
+func (f IndexParserFunc) ParseIndex(s string) (types.Index, error) {
+	return f(s)
+}
+
+type IndexSpecParserFunc func(s string) (types.IndexSpec, error)
+
+func (f IndexSpecParserFunc) ParseIndexSpec(s string) (types.IndexSpec, error) {
+	return f(s)
 }
 
 type JWTExtractorFunc func(r *http.Request) string

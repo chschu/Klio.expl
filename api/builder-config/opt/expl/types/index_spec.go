@@ -1,6 +1,7 @@
 package types
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -12,6 +13,22 @@ func NewIndexSpec(ranges ...IndexRange) IndexSpec {
 	return IndexSpec{
 		ranges: ranges,
 	}
+}
+
+func NewIndexSpecFromString(s string) (IndexSpec, error) {
+	var irs []IndexRange
+	sep := regexp.MustCompile("\\pZ+")
+	irStrs := sep.Split(s, -1)
+	for _, irStr := range irStrs {
+		if len(irStr) > 0 {
+			ir, err := NewIndexRangeFromString(irStr)
+			if err != nil {
+				return IndexSpec{}, err
+			}
+			irs = append(irs, ir)
+		}
+	}
+	return NewIndexSpec(irs...), nil
 }
 
 func IndexSpecAll() IndexSpec {

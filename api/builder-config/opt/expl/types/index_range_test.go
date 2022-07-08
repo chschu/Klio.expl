@@ -6,6 +6,38 @@ import (
 	"testing"
 )
 
+func Test_NewIndexRangeFromString_Single(t *testing.T) {
+	result, err := types.NewIndexRangeFromString("   42  ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewIndexRange(types.NewHeadIndex(42), types.NewHeadIndex(42)), result)
+}
+
+func Test_NewIndexRangeFromString_Range(t *testing.T) {
+	result, err := types.NewIndexRangeFromString("  -17:p3 ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewIndexRange(types.NewTailIndex(17), types.NewPermanentIndex(3)), result)
+}
+
+func Test_NewIndexRangeFromString_Invalid(t *testing.T) {
+	_, err := types.NewIndexRangeFromString("1: 2")
+
+	assert.Error(t, err)
+}
+
+func Test_NewIndexRangeFromString_FromInvalid(t *testing.T) {
+	_, err := types.NewIndexRangeFromString("a:2")
+
+	assert.Error(t, err)
+}
+
+func Test_NewIndexRangeFromString_ToInvalid(t *testing.T) {
+	_, err := types.NewIndexRangeFromString(" 1:b ")
+
+	assert.Error(t, err)
+}
+
 func Test_IndexRange_SQLCondition_Single(t *testing.T) {
 	sut := types.NewIndexRange(types.NewPermanentIndex(39766283), types.NewPermanentIndex(39766283))
 

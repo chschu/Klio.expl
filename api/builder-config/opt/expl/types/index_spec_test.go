@@ -6,6 +6,32 @@ import (
 	"testing"
 )
 
+func Test_NewIndexSpecFromString_Empty(t *testing.T) {
+	result, err := types.NewIndexSpecFromString("   ")
+
+	assert.NoError(t, err)
+	assert.Equal(t, types.NewIndexSpec(), result)
+}
+
+func Test_NewIndexSpecFromString_NonEmpty(t *testing.T) {
+	result, err := types.NewIndexSpecFromString(" 4:-9  p3   p14:13 ")
+
+	expectedIndexSpec := types.NewIndexSpec(
+		types.NewIndexRange(types.NewHeadIndex(4), types.NewTailIndex(9)),
+		types.NewIndexRange(types.NewPermanentIndex(3), types.NewPermanentIndex(3)),
+		types.NewIndexRange(types.NewPermanentIndex(14), types.NewHeadIndex(13)),
+	)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedIndexSpec, result)
+}
+
+func Test_NewIndexSpecFromString_Invalid(t *testing.T) {
+	_, err := types.NewIndexSpecFromString("x")
+
+	assert.Error(t, err)
+}
+
 func Test_IndexSpec_SqlCondition_Empty(t *testing.T) {
 	sut := types.NewIndexSpec()
 
