@@ -12,7 +12,7 @@ func Test_IndexSpec_SqlCondition_Empty(t *testing.T) {
 	sql, params := sut.SQLCondition()
 
 	assert.Equal(t, "false", sql)
-	assert.Equal(t, []any{}, params)
+	assert.Nil(t, params)
 }
 
 func Test_IndexSpec_SqlCondition_NonEmpty(t *testing.T) {

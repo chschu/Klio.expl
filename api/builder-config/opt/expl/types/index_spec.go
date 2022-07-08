@@ -25,7 +25,6 @@ func IndexSpecSingle(index Index) IndexSpec {
 func (is IndexSpec) SQLCondition() (sqlCondition string, params []any) {
 	sb := strings.Builder{}
 	sb.WriteString("false")
-	params = []any{}
 	for _, ir := range is.ranges {
 		indexRangeSql, indexRangeParams := ir.SQLCondition()
 		sb.WriteString(" OR (")
