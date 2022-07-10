@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+//go:generate go run github.com/golang/mock/mockgen@v1.6.0 -source top_handler.go -destination generated/mocks/top_handler.go -package mocks
+
 type Topper interface {
 	Top(ctx context.Context, count int) (entries []types.Entry, err error)
 }

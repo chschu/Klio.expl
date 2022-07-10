@@ -2,8 +2,10 @@ package webhook_test
 
 import (
 	"context"
+	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"klio/expl/expldb"
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"klio/expl/webhook/generated/mocks"
@@ -63,4 +65,56 @@ func Test_FindHandler_Find_SoftFail_InvalidSyntax(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "Syntax: !trig <POSIX-Regex>", out.Text)
+}
+
+func Test_FindHandler_Find_SoftFail_InvalidRegex(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	finderMock := mocks.NewMockLimitedFinder(ctrl)
+	entryListStringerMock := mocks.NewMockEntryListStringer(ctrl)
+
+	sut := webhook.NewFindHandler(finderMock, entryListStringerMock, 50, "/dummy/", time.Minute)
+
+	in := &webhook.Request{
+		UserName:    "regexnoob",
+		Text:        "!find this-is-not-a-regex",
+		TriggerWord: "!triggy",
+	}
+
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
+
+	now := time.Now()
+
+	finderMock.EXPECT().FindWithLimit(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0, expldb.ErrFindRegexInvalid)
+
+	out, err := sut.Handle(in, req, now)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Syntax: !triggy <POSIX-Regex>", out.Text)
+}
+
+func Test_FindHandler_Find_Fail_FindReturnsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	finderMock := mocks.NewMockLimitedFinder(ctrl)
+	entryListStringerMock := mocks.NewMockEntryListStringer(ctrl)
+
+	sut := webhook.NewFindHandler(finderMock, entryListStringerMock, 50, "/dummy/", time.Minute)
+
+	in := &webhook.Request{
+		UserName: "unlucky",
+		Text:     "!find this-is-unfortunate",
+	}
+
+	req := httptest.NewRequest("DUMMY", "/dummy", nil)
+
+	now := time.Now()
+
+	expectedError := errors.New("expected error")
+
+	finderMock.EXPECT().FindWithLimit(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0, expectedError)
+
+	out, err := sut.Handle(in, req, now)
+
+	assert.Nil(t, out)
+	assert.Error(t, err)
+	assert.Equal(t, expectedError, err)
 }
