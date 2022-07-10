@@ -40,16 +40,19 @@ type explHandler struct {
 	webUrlValidity      time.Duration
 }
 
+var explHandlerRegexp = regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)(?:\\pZ+(?P<IndexSpec>.*?))?\\pZ*$")
+var explHandlerSubexpIndexKey = explHandlerRegexp.SubexpIndex("Key")
+var explHandlerSubexpIndexIndexSpec = explHandlerRegexp.SubexpIndex("IndexSpec")
+
 func (e *explHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> ( <Index> | <VonIndex>:<BisIndex> )*", in.TriggerWord))
 
-	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)(?:\\pZ+(?P<IndexSpec>.*?))?\\pZ*$")
-	match := sep.FindStringSubmatch(in.Text)
+	match := explHandlerRegexp.FindStringSubmatch(in.Text)
 	if match == nil {
 		return syntaxResponse, nil
 	}
-	key := match[sep.SubexpIndex("Key")]
-	indexSpecStr := match[sep.SubexpIndex("IndexSpec")]
+	key := match[explHandlerSubexpIndexKey]
+	indexSpecStr := match[explHandlerSubexpIndexIndexSpec]
 
 	var indexSpec types.IndexSpec
 	if len(indexSpecStr) == 0 {

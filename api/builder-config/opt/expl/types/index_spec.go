@@ -15,10 +15,11 @@ func NewIndexSpec(ranges ...IndexRange) IndexSpec {
 	}
 }
 
+var indexSpecWhitespaceRegexp = regexp.MustCompile("\\pZ+")
+
 func NewIndexSpecFromString(s string) (IndexSpec, error) {
 	var irs []IndexRange
-	sep := regexp.MustCompile("\\pZ+")
-	irStrs := sep.Split(s, -1)
+	irStrs := indexSpecWhitespaceRegexp.Split(s, -1)
 	for _, irStr := range irStrs {
 		if len(irStr) > 0 {
 			ir, err := NewIndexRangeFromString(irStr)

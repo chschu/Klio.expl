@@ -17,20 +17,23 @@ func NewIndexRange(from Index, to Index) IndexRange {
 	}
 }
 
+var indexRangeRegexp = regexp.MustCompile("^\\pZ*(?P<From>\\PZ+?)(:(?P<To>\\PZ+?))?\\pZ*$")
+var indexRangeSubexpIndexFrom = indexRangeRegexp.SubexpIndex("From")
+var indexRangesubexpIndexTo = indexRangeRegexp.SubexpIndex("To")
+
 func NewIndexRangeFromString(s string) (IndexRange, error) {
-	sep := regexp.MustCompile("^\\pZ*(?P<From>\\PZ+?)(:(?P<To>\\PZ+?))?\\pZ*$")
-	match := sep.FindStringSubmatch(s)
+	match := indexRangeRegexp.FindStringSubmatch(s)
 	if match == nil {
 		return IndexRange{}, fmt.Errorf("invalid index range: %s", s)
 	}
 
-	fromStr := match[sep.SubexpIndex("From")]
+	fromStr := match[indexRangeSubexpIndexFrom]
 	from, err := NewIndexFromString(fromStr)
 	if err != nil {
 		return IndexRange{}, err
 	}
 
-	toStr := match[sep.SubexpIndex("To")]
+	toStr := match[indexRangesubexpIndexTo]
 	if toStr == "" {
 		return NewIndexRange(from, from), nil
 	}

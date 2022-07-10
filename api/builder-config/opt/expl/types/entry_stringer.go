@@ -19,8 +19,10 @@ type entryStringer struct {
 	timeLocation *time.Location
 }
 
+var entryStringerSpaceRegexp = regexp.MustCompile("[[:space:]]")
+
 func (s *entryStringer) String(e *Entry) string {
-	text := regexp.MustCompile("[[:space:]]").ReplaceAllString(e.Value, " ")
+	text := entryStringerSpaceRegexp.ReplaceAllString(e.Value, " ")
 
 	var metadata []string
 	if e.CreatedBy.Valid {

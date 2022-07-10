@@ -32,16 +32,19 @@ type delHandler struct {
 	entryStringer EntryStringer
 }
 
+var delHandlerRegexp = regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Index>.*?)\\pZ*$")
+var delHandlerSubexpIndexKey = delHandlerRegexp.SubexpIndex("Key")
+var delHandlerSubexpIndexIndex = delHandlerRegexp.SubexpIndex("Index")
+
 func (d *delHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <Begriff> <Index>", in.TriggerWord))
 
-	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Index>.*?)\\pZ*$")
-	match := sep.FindStringSubmatch(in.Text)
+	match := delHandlerRegexp.FindStringSubmatch(in.Text)
 	if match == nil {
 		return syntaxResponse, nil
 	}
-	key := match[sep.SubexpIndex("Key")]
-	indexStr := match[sep.SubexpIndex("Index")]
+	key := match[delHandlerSubexpIndexKey]
+	indexStr := match[delHandlerSubexpIndexIndex]
 
 	index, err := d.indexParser.ParseIndex(indexStr)
 	if err != nil {

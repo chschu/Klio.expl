@@ -35,15 +35,17 @@ type findHandler struct {
 	webUrlValidity      time.Duration
 }
 
+var findHandlerRegexp = regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Regex>\\PZ+)\\pZ*$")
+var findHandlerSubexpIndexRegex = findHandlerRegexp.SubexpIndex("Regex")
+
 func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
 	syntaxResponse := NewResponse(fmt.Sprintf("Syntax: %s <POSIX-Regex>", in.TriggerWord))
 
-	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Regex>\\PZ+)\\pZ*$")
-	match := sep.FindStringSubmatch(in.Text)
+	match := findHandlerRegexp.FindStringSubmatch(in.Text)
 	if match == nil {
 		return syntaxResponse, nil
 	}
-	rex := match[sep.SubexpIndex("Regex")]
+	rex := match[findHandlerSubexpIndexRegex]
 
 	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, f.maxImmediateResults)
 	if err == expldb.ErrFindRegexInvalid {

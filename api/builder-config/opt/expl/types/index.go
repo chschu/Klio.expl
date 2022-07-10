@@ -13,14 +13,17 @@ type Index struct {
 	prefix       string
 }
 
+var indexRegexp = regexp.MustCompile("^\\pZ*(?P<Prefix>|-|p)(?P<N>[1-9]\\d*)\\pZ*$")
+var indexSubexpIndexPrefix = indexRegexp.SubexpIndex("Prefix")
+var indexSubexpIndexN = indexRegexp.SubexpIndex("N")
+
 func NewIndexFromString(s string) (Index, error) {
-	sep := regexp.MustCompile("^\\pZ*(?P<Prefix>|-|p)(?P<N>[1-9]\\d*)\\pZ*$")
-	match := sep.FindStringSubmatch(s)
+	match := indexRegexp.FindStringSubmatch(s)
 	if match == nil {
 		return Index{}, fmt.Errorf("invalid index: %s", s)
 	}
-	prefix := match[sep.SubexpIndex("Prefix")]
-	nStr := match[sep.SubexpIndex("N")]
+	prefix := match[indexSubexpIndexPrefix]
+	nStr := match[indexSubexpIndexN]
 
 	n64, err := strconv.ParseUint(nStr, 10, 32)
 	if err != nil {

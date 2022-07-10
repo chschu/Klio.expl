@@ -27,9 +27,10 @@ type topHandler struct {
 	maxResults int
 }
 
+var topRegexp = regexp.MustCompile("^\\pZ*\\PZ+\\pZ*$")
+
 func (e *topHandler) Handle(in *Request, r *http.Request, _ time.Time) (*Response, error) {
-	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ*$")
-	if !sep.MatchString(in.Text) {
+	if !topRegexp.MatchString(in.Text) {
 		return NewResponse(fmt.Sprintf("Syntax: %s", in.TriggerWord)), nil
 	}
 

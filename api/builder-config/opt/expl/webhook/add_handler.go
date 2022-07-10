@@ -33,14 +33,17 @@ type addHandler struct {
 	maxUTF16LengthForValue int
 }
 
+var addHandlerRegexp = regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Value>\\PZ.*?)\\pZ*$")
+var addHandlerSubexpIndexKey = addHandlerRegexp.SubexpIndex("Key")
+var addHandlerSubexpIndexValue = addHandlerRegexp.SubexpIndex("Value")
+
 func (a *addHandler) Handle(in *Request, r *http.Request, now time.Time) (*Response, error) {
-	sep := regexp.MustCompile("^\\pZ*\\PZ+\\pZ+(?P<Key>\\PZ+)\\pZ+(?P<Value>\\PZ.*?)\\pZ*$")
-	match := sep.FindStringSubmatch(in.Text)
+	match := addHandlerRegexp.FindStringSubmatch(in.Text)
 	if match == nil {
 		return NewResponse(fmt.Sprintf("Syntax: %s <Begriff> <Erklärung>", in.TriggerWord)), nil
 	}
-	key := match[sep.SubexpIndex("Key")]
-	value := match[sep.SubexpIndex("Value")]
+	key := match[addHandlerSubexpIndexKey]
+	value := match[addHandlerSubexpIndexValue]
 
 	if len(utf16.Encode([]rune(key))) > a.maxUTF16LengthForKey {
 		return NewResponse("Tut mir leid, der Begriff ist leider zu lang."), nil
