@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/expldb"
+	"klio/expl/service"
 	"klio/expl/types"
 	"klio/expl/webhook"
 	"klio/expl/webhook/generated/mocks"
@@ -84,7 +84,7 @@ func Test_FindHandler_Find_SoftFail_InvalidRegex(t *testing.T) {
 
 	now := time.Now()
 
-	finderMock.EXPECT().FindWithLimit(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0, expldb.ErrFindRegexInvalid)
+	finderMock.EXPECT().FindWithLimit(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0, service.ErrFindRegexInvalid)
 
 	out, err := sut.Handle(in, req, now)
 

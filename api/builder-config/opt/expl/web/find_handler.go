@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/sirupsen/logrus"
 	"io"
-	"klio/expl/expldb"
+	"klio/expl/service"
 	"klio/expl/types"
 	"net/http"
 )
@@ -40,7 +40,7 @@ func (f *findHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	entries, err := f.edb.Find(r.Context(), rex)
-	if err != nil && err != expldb.ErrFindRegexInvalid {
+	if err != nil && err != service.ErrFindRegexInvalid {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Errorf("error accessing entries: %v", err)
 		return

@@ -3,7 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"klio/expl/expldb"
+	"klio/expl/service"
 	"klio/expl/types"
 	"net/http"
 	"regexp"
@@ -48,7 +48,7 @@ func (f *findHandler) Handle(in *Request, r *http.Request, now time.Time) (*Resp
 	rex := match[findHandlerSubexpIndexRegex]
 
 	entries, total, err := f.edb.FindWithLimit(r.Context(), rex, f.maxImmediateResults)
-	if err == expldb.ErrFindRegexInvalid {
+	if err == service.ErrFindRegexInvalid {
 		return syntaxResponse, nil
 	}
 	if err != nil {

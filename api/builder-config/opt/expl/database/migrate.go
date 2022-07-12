@@ -1,4 +1,4 @@
-package expldb
+package database
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func applyMigrations(db *sqlx.DB) (err error) {
+func ApplyMigrations(db *sqlx.DB) (err error) {
 	srcDrv, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return err

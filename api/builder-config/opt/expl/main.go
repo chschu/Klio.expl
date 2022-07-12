@@ -6,11 +6,13 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"io"
-	"klio/expl/expldb"
+	"klio/expl/database"
 	"klio/expl/security"
+	"klio/expl/service"
 	"klio/expl/settings"
 	"klio/expl/types"
 	"klio/expl/web"
@@ -34,10 +36,19 @@ func main() {
 	jwtGenerator := security.NewJWTGenerator(jwt.SigningMethodHS256, jwtKey)
 	jwtValidator := security.NewJWTValidator(jwt.SigningMethodHS256, jwtKey)
 
-	edb, err := expldb.NewExplDB(mustLookupEnv("CONNECT_STRING"))
+	db, err := sqlx.Open("postgres", mustLookupEnv("CONNECT_STRING"))
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	database.WaitUntilAvailable(db)
+
+	err = database.ApplyMigrations(db)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	edb := service.NewExplService(db)
 	defer func(e io.Closer) {
 		err := e.Close()
 		if err != nil {

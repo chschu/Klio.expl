@@ -1,4 +1,4 @@
-package expldb
+package database
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func waitUntilAvailable(db *sqlx.DB) {
+func WaitUntilAvailable(db *sqlx.DB) {
 	for db.Ping() != nil {
 		logrus.Info("Waiting for database...")
 		time.Sleep(time.Second)

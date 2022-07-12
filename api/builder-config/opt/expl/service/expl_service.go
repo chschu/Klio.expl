@@ -1,4 +1,4 @@
-package expldb
+package service
 
 import (
 	"context"
@@ -8,32 +8,21 @@ import (
 	"time"
 )
 
-func NewExplDB(databaseURL string) (*explDB, error) {
-	db, err := sqlx.Open("postgres", databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	waitUntilAvailable(db)
-	err = applyMigrations(db)
-	if err != nil {
-		return nil, err
-	}
-
-	return &explDB{
+func NewExplService(db *sqlx.DB) ExplService {
+	return ExplService{
 		db: db,
-	}, nil
+	}
 }
 
-type explDB struct {
+type ExplService struct {
 	db *sqlx.DB
 }
 
-func (e *explDB) Close() error {
+func (e ExplService) Close() error {
 	return e.db.Close()
 }
 
-func (e *explDB) Add(ctx context.Context, key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error) {
+func (e ExplService) Add(ctx context.Context, key string, value string, createdBy string, createdAt time.Time) (entry *types.Entry, err error) {
 	entry = &types.Entry{}
 	sql := "INSERT INTO entry(key, value, created_by, created_at) VALUES(?, ?, ?, ?) RETURNING *"
 	err = e.db.GetContext(ctx, entry, e.db.Rebind(sql), key, value, createdBy, createdAt)
@@ -43,7 +32,7 @@ func (e *explDB) Add(ctx context.Context, key string, value string, createdBy st
 	return entry, nil
 }
 
-func (e *explDB) Explain(ctx context.Context, key string) (entries []types.Entry, err error) {
+func (e ExplService) Explain(ctx context.Context, key string) (entries []types.Entry, err error) {
 	sql := "SELECT * FROM entry WHERE key_normalized = NORMALIZE(LOWER(?), NFC) ORDER BY id"
 	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), key)
 	if err != nil {
@@ -52,7 +41,7 @@ func (e *explDB) Explain(ctx context.Context, key string) (entries []types.Entry
 	return entries, nil
 }
 
-func (e *explDB) ExplainWithLimit(ctx context.Context, key string, indexSpec types.IndexSpec, limit int) (entries []types.Entry, total int, err error) {
+func (e ExplService) ExplainWithLimit(ctx context.Context, key string, indexSpec types.IndexSpec, limit int) (entries []types.Entry, total int, err error) {
 	if limit <= 0 {
 		// query cannot report total if limit is zero
 		return nil, 0, errors.New("limit must be greater than zero")
@@ -80,7 +69,7 @@ func (e *explDB) ExplainWithLimit(ctx context.Context, key string, indexSpec typ
 	return entries, total, nil
 }
 
-func (e *explDB) Delete(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
+func (e ExplService) Delete(ctx context.Context, key string, indexSpec types.IndexSpec) (entries []types.Entry, err error) {
 	irc, params := indexSpec.SQLCondition()
 	sql := "DELETE FROM entry WHERE (" + irc + ") AND key_normalized = NORMALIZE(LOWER(?), NFC) RETURNING *"
 	params = append(params, key)
@@ -93,7 +82,7 @@ func (e *explDB) Delete(ctx context.Context, key string, indexSpec types.IndexSp
 
 var ErrFindRegexInvalid = errors.New("not a valid POSIX regular expression")
 
-func (e *explDB) Find(ctx context.Context, rex string) (entries []types.Entry, err error) {
+func (e ExplService) Find(ctx context.Context, rex string) (entries []types.Entry, err error) {
 	var valid bool
 	sql := "SELECT regexp_is_valid(?)"
 	err = e.db.Get(&valid, e.db.Rebind(sql), rex)
@@ -111,7 +100,7 @@ func (e *explDB) Find(ctx context.Context, rex string) (entries []types.Entry, e
 	return entries, nil
 }
 
-func (e *explDB) FindWithLimit(ctx context.Context, rex string, limit int) (entries []types.Entry, total int, err error) {
+func (e ExplService) FindWithLimit(ctx context.Context, rex string, limit int) (entries []types.Entry, total int, err error) {
 	if limit <= 0 {
 		// query cannot report total if limit is zero
 		return nil, 0, errors.New("limit must be greater than zero")
@@ -146,7 +135,7 @@ func (e *explDB) FindWithLimit(ctx context.Context, rex string, limit int) (entr
 	return entries, total, nil
 }
 
-func (e *explDB) Top(ctx context.Context, count int) (entries []types.Entry, err error) {
+func (e ExplService) Top(ctx context.Context, count int) (entries []types.Entry, err error) {
 	sql := "SELECT * FROM entry WHERE tail_index = 1 ORDER BY head_index DESC, key_normalized LIMIT ?"
 	err = e.db.SelectContext(ctx, &entries, e.db.Rebind(sql), count)
 	if err != nil {
