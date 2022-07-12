@@ -3,13 +3,13 @@ package database
 import (
 	"context"
 	"embed"
+	"github.com/chschu/Klio.expl/util"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"klio/expl/util"
 )
 
 //go:embed migrations/*.sql

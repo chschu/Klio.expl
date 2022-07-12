@@ -2,11 +2,11 @@ package webhook_test
 
 import (
 	"context"
+	"github.com/chschu/Klio.expl/types"
+	"github.com/chschu/Klio.expl/webhook"
+	"github.com/chschu/Klio.expl/webhook/generated/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/types"
-	"klio/expl/webhook"
-	"klio/expl/webhook/generated/mocks"
 	"math/rand"
 	"net/http/httptest"
 	"testing"

@@ -1,8 +1,8 @@
 package types_test
 
 import (
+	"github.com/chschu/Klio.expl/types"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/types"
 	"testing"
 )
 

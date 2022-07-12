@@ -2,8 +2,8 @@ package webhook
 
 import (
 	"fmt"
+	"github.com/chschu/Klio.expl/types"
 	"github.com/sirupsen/logrus"
-	"klio/expl/types"
 	"net/http"
 	"net/url"
 	"strings"

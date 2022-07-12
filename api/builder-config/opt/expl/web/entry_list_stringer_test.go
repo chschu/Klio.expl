@@ -1,12 +1,12 @@
 package web_test
 
 import (
+	"github.com/chschu/Klio.expl/types"
+	"github.com/chschu/Klio.expl/web"
+	"github.com/chschu/Klio.expl/web/generated/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"klio/expl/types"
-	"klio/expl/web"
-	"klio/expl/web/generated/mocks"
 	"math/rand"
 	"testing"
 )

@@ -3,8 +3,8 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"klio/expl/service"
-	"klio/expl/types"
+	"github.com/chschu/Klio.expl/service"
+	"github.com/chschu/Klio.expl/types"
 	"net/http"
 	"regexp"
 	"time"

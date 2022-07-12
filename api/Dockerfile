@@ -24,5 +24,5 @@ USER expl
 
 EXPOSE 8000
 
-COPY --from=builder /go/bin/expl /usr/bin/expl
-CMD ["/usr/bin/expl"]
+COPY --from=builder /go/bin/Klio.expl /usr/bin/Klio.expl
+CMD ["/usr/bin/Klio.expl"]

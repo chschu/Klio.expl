@@ -1,7 +1,7 @@
 package webhook
 
 import (
-	"klio/expl/types"
+	"github.com/chschu/Klio.expl/types"
 	"net/http"
 	"time"
 )

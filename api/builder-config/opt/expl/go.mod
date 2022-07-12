@@ -1,4 +1,4 @@
-module klio/expl
+module github.com/chschu/Klio.expl
 
 go 1.18
 

@@ -2,10 +2,10 @@ package web
 
 import (
 	"context"
+	"github.com/chschu/Klio.expl/service"
+	"github.com/chschu/Klio.expl/types"
 	"github.com/sirupsen/logrus"
 	"io"
-	"klio/expl/service"
-	"klio/expl/types"
 	"net/http"
 )
 

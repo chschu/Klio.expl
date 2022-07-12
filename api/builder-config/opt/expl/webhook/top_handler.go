@@ -3,7 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"klio/expl/types"
+	"github.com/chschu/Klio.expl/types"
 	"net/http"
 	"regexp"
 	"strings"
