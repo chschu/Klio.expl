@@ -41,7 +41,10 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	database.WaitUntilAvailable(db)
+	err = database.WaitUntilAvailable(context.Background(), db)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	err = database.ApplyMigrations(db)
 	if err != nil {
